@@ -4,6 +4,7 @@ from torch.utils.data import DataLoader,SubsetRandomSampler
 from utils import VEDataset
 import numpy as np
 from torch.optim import Adam, SGD, AdamW, Adadelta, Adagrad
+from torch.optim.lr_scheduler import ExponentialLR
 from model import SimpleANN
 from tqdm import tqdm
 import json
@@ -236,7 +237,7 @@ if __name__ == "__main__":
 
     # generate save_to if not provided
     if not args.save_to:
-        args.save_to = f'hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_model'
+        args.save_to = f'hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}_model'
     
     run_training(
         data_train_json_dir=args.data_train_json_dir,

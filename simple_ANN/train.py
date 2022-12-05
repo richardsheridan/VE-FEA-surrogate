@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.utils.data import DataLoader,SubsetRandomSampler
 from utils import VEDataset
 import numpy as np
-from torch.optim import Adam
+from torch.optim import Adam, SGD, AdamW, Adadelta, Adagrad
 from model import SimpleANN
 from tqdm import tqdm
 import json
@@ -36,6 +36,9 @@ def run_training(
     NUM_WORKERS: int,
     VALID_FRACTION: float,
     LR: float,
+    optimizer:str,
+    scheduler:str,
+    loss_fn:str,
     ):
 
     # CUDA for PyTorch
@@ -72,10 +75,32 @@ def run_training(
     test_loader = DataLoader(test_data, batch_size = BATCH_SIZE,
                              num_workers = NUM_WORKERS)
 
+    # define the loss function, use mean square error loss by default
+    if loss_fn == 'l1':
+        criterion = nn.L1Loss()
+    elif loss_fn == 'crossentropy':
+        criterion = nn.CrossEntropyLoss()
+    else:
+        criterion = nn.MSELoss()
 
-    # define the loss function, use mean square error loss
-    criterion = nn.MSELoss()
-    optimizer = Adam(model.parameters(), lr = LR)
+    # define the optimizer, use Adam by default
+    if optimizer == 'sgd':
+        optimizer = SGD(model.parameters(), lr = LR)
+    elif optimizer == 'adamw':
+        optimizer = AdamW(model.parameters(), lr = LR)
+    elif optimizer == 'adadelta':
+        optimizer = Adadelta(model.parameters(), lr = LR)
+    elif optimizer == 'adagrad':
+        optimizer = Adagrad(model.parameters(), lr = LR)
+    else:
+        optimizer = Adam(model.parameters(), lr = LR)
+
+    # define the scheduler, use no scheduler by default
+    no_scheduler = False
+    if scheduler == 'exp':
+        scheduler = ExponentialLR(optimizer, gamma=0.9)
+    else:
+        no_scheduler = True
 
     # initialize tracker for minimum validation loss
     valid_loss_min = np.Inf  # set initial "min" to infinity
@@ -98,6 +123,8 @@ def run_training(
             y_train = y_train.to(device)
             loss, predictions = train(model,x_train,y_train,optimizer,criterion)
             train_loss += loss.item() * x_train.size(0)
+        if not no_scheduler:
+            scheduler.step()
 
         ######################    
         # validate the model #
@@ -196,6 +223,15 @@ if __name__ == "__main__":
         help='peak learning rate')
     parser.add_argument("--save_to", type=str, default=None,
         help='save model and history file under this name')
+    parser.add_argument("--optimizer", type=str, default='adam',
+        choices=['adam','sgd','adamw','adadelta','adagrad'],
+        help='optimizer to be used for training')
+    parser.add_argument("--scheduler", type=str, default='no',
+        choices=['no','exp'],
+        help='scheduler to be used for training')
+    parser.add_argument("--loss_fn", type=str, default='mse',
+        choices=['mse','l1','crossentropy'],
+        help='save model and history file under this name')
     args = parser.parse_args()
 
     # generate save_to if not provided
@@ -215,4 +251,7 @@ if __name__ == "__main__":
         NUM_WORKERS=args.num_workers,
         VALID_FRACTION=args.valid_fraction,
         LR=args.lr,
+        optimizer=args.optimizer,
+        scheduler=args.scheduler,
+        loss_fn=args.loss_fn,
     )

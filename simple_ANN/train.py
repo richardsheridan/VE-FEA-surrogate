@@ -8,6 +8,7 @@ from torch.optim.lr_scheduler import ExponentialLR
 from model import SimpleANN
 from tqdm import tqdm
 import json
+import logging
 
 # define the train process
 def train(model, x, y, optimizer, criterion):
@@ -41,6 +42,11 @@ def run_training(
     scheduler:str,
     loss_fn:str,
     ):
+    # configure logging
+    logging.basicConfig(level=logging.INFO, 
+        filename=f'{save_to}.log',
+        format='%(asctime)s - %(message)s',
+        datefmt='%d-%b-%y %H:%M:%S')
 
     # CUDA for PyTorch
     use_cuda = torch.cuda.is_available()
@@ -152,6 +158,11 @@ def run_training(
             train_loss,
             valid_loss
             ))
+        logging.info('Epoch: {} \tTraining Loss: {:.6f} \tValidation Loss: {:.6f}'.format(
+            epoch+1, 
+            train_loss,
+            valid_loss
+            ))
         
         # save loss to history
         history['train_loss'].append(train_loss)
@@ -160,6 +171,9 @@ def run_training(
         # save model if validation loss has decreased
         if valid_loss <= valid_loss_min:
             print('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(
+            valid_loss_min,
+            valid_loss))
+            logging.info('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(
             valid_loss_min,
             valid_loss))
             torch.save(model.state_dict(), f'{save_to}.pt')
@@ -186,6 +200,7 @@ def run_training(
     # calculate and print avg test loss
     test_loss = test_loss/len(test_loader.sampler)
     print('Test Loss: {:.6f}\n'.format(test_loss))
+    logging.info('Test Loss: {:.6f}\n'.format(test_loss))
     # save to history
     history['test_loss'] = test_loss
 
@@ -193,6 +208,7 @@ def run_training(
     with open(f'{save_to}_history.json','w') as f:
         json.dump(history, f)
         print(f'history saved to {save_to}_history.json')
+        logging.info(f'history saved to {save_to}_history.json')
 
 if __name__ == "__main__":
     import argparse

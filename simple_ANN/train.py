@@ -20,14 +20,14 @@ device = torch.device("cuda:0" if use_cuda else "cpu")
 torch.backends.cudnn.benchmark = True
 
 # load model
-model = SimpleANN().to(device)
+model = SimpleANN(hidden_1=64,hidden_2=64).to(device)
 print(model)
 
 # save model to this file
-save_to = 'hs1-64_hs2-64_ep-100_bs-32_model'
+save_to = 'test'
 
 # number of training epochs
-EPOCHS = 100
+EPOCHS = 1
 # how many samples per batch to load
 BATCH_SIZE = 32
 # number of subprocesses to use for data loading

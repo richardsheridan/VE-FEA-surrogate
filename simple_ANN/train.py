@@ -146,7 +146,7 @@ def run_training(
             # calculate the loss
             loss = criterion(output,y_val)
             # update running validation loss 
-            valid_loss = loss.item() * x_val.size(0)
+            valid_loss += loss.item() * x_val.size(0)
         
         # print training/validation statistics 
         # calculate average loss over an epoch

@@ -195,7 +195,7 @@ def run_training(
         # calculate the loss
         loss = criterion(output,y_test)
         # update running validation loss 
-        test_loss = loss.item() * x_test.size(0)
+        test_loss += loss.item() * x_test.size(0)
         
     # calculate and print avg test loss
     test_loss = test_loss/len(test_loader.sampler)

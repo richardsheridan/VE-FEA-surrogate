@@ -9,6 +9,7 @@ from model import SimpleANN
 from tqdm import tqdm
 import json
 import logging
+import os
 
 # define the train process
 def train(model, x, y, optimizer, criterion):
@@ -44,9 +45,13 @@ def run_training(
     scheduler:str,
     loss_fn:str,
     ):
+    # create the 'save_to' folder if not exist
+    # don't check for existence of the folder because it should not be
+    os.mkdir(save_to)
+
     # configure logging
     logging.basicConfig(level=logging.INFO, 
-        filename=f'{save_to}.log',
+        filename=f'{save_to}/training_log.log',
         format='%(asctime)s - %(message)s',
         datefmt='%d-%b-%y %H:%M:%S')
 
@@ -183,7 +188,7 @@ def run_training(
             logging.info('Validation loss decreased ({:.6f} --> {:.6f}).  Saving model ...'.format(
             valid_loss_min,
             valid_loss))
-            torch.save(model.state_dict(), f'{save_to}.pt')
+            torch.save(model.state_dict(), f'{save_to}/model.pt')
             valid_loss_min = valid_loss
 
 
@@ -191,7 +196,7 @@ def run_training(
     # initialize lists to monitor test loss and accuracy
     test_loss = 0.0
     # load the best model
-    model.load_state_dict(torch.load(f'{save_to}.pt'))
+    model.load_state_dict(torch.load(f'{save_to}/model.pt'))
     model.eval() # prep model for evaluation
     for batch in tqdm(test_loader):
         x_test, y_test = batch['input'], batch['output']
@@ -212,10 +217,10 @@ def run_training(
     history['test_loss'] = test_loss
 
     # save history to json
-    with open(f'{save_to}_history.json','w') as f:
+    with open(f'{save_to}/history.json','w') as f:
         json.dump(history, f)
-        print(f'history saved to {save_to}_history.json')
-        logging.info(f'history saved to {save_to}_history.json')
+        print(f'history saved to {save_to}/history.json')
+        logging.info(f'history saved to {save_to}/history.json')
 
 if __name__ == "__main__":
     import argparse
@@ -266,7 +271,7 @@ if __name__ == "__main__":
 
     # generate save_to if not provided
     if not args.save_to:
-        args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}_model'
+        args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}'
     
     run_training(
         data_train_json_dir=args.data_train_json_dir,

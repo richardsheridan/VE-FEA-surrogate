@@ -271,7 +271,7 @@ if __name__ == "__main__":
 
     # generate save_to if not provided
     if not args.save_to:
-        args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}'
+        args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_do-{args.dropout}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}'
     
     run_training(
         data_train_json_dir=args.data_train_json_dir,

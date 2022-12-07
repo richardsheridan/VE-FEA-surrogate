@@ -32,6 +32,8 @@ def run_training(
     input_dim: int,
     hidden_1: int,
     hidden_2: int,
+    dropout: float,
+    output_dim: int,
     save_to: str,
     EPOCHS: int,
     BATCH_SIZE: int,
@@ -54,7 +56,12 @@ def run_training(
     torch.backends.cudnn.benchmark = True
 
     # load model
-    model = SimpleANN(hidden_1=hidden_1,hidden_2=hidden_2).to(device)
+    model = SimpleANN(input_dim=input_dim,
+        hidden_1=hidden_1,
+        hidden_2=hidden_2,
+        output_dim=output_dim,
+        dropout=dropout
+        ).to(device)
     print(model)
 
 
@@ -220,12 +227,16 @@ if __name__ == "__main__":
     parser.add_argument("--data_test_json_dir", type=str,
         default='../full_test.json',
         help='path to the json file containing the dataframe of test data')
-    parser.add_argument("--input_dim", type=int, default=36,
+    parser.add_argument("--input_dim", type=int, default=66,
         help='dimension of the input')
     parser.add_argument("--hidden_1", type=int, default=64,
         help='dimension of hidden layer 1')
     parser.add_argument("--hidden_2", type=int, default=64,
         help='dimension of hidden layer 2')
+    parser.add_argument("--dropout", type=float, default=0.2,
+        help='dropout ratio')
+    parser.add_argument("--output_dim", type=int, default=60,
+        help='dimension of the output')
     parser.add_argument("-s", "--seed", type=int, default=27,
         help='random seed for train/valid split')
     parser.add_argument("-b", "--batch_size", type=int, default=32,
@@ -249,11 +260,13 @@ if __name__ == "__main__":
     parser.add_argument("--loss_fn", type=str, default='mse',
         choices=['mse','l1','crossentropy'],
         help='save model and history file under this name')
+    parser.add_argument("--task_name", type=str, default='unknown',
+        help='name of the task, eg. ep_epp, tand')
     args = parser.parse_args()
 
     # generate save_to if not provided
     if not args.save_to:
-        args.save_to = f'hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}_model'
+        args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}_model'
     
     run_training(
         data_train_json_dir=args.data_train_json_dir,
@@ -262,6 +275,8 @@ if __name__ == "__main__":
         input_dim=args.input_dim,
         hidden_1=args.hidden_1,
         hidden_2=args.hidden_2,
+        dropout=args.dropout,
+        output_dim=args.output_dim,
         save_to=args.save_to,
         EPOCHS=args.epochs,
         BATCH_SIZE=args.batch_size,

@@ -48,7 +48,7 @@ def run_training(
     scheduler:str,
     loss_fn:str,
     model_for:str,
-    use_gpu:bool,
+    no_cuda:bool,
     ):
     # create the 'save_to' folder if not exist
     # don't check for existence of the folder because it should not be
@@ -62,7 +62,7 @@ def run_training(
 
     # CUDA for PyTorch
     # check CUDA only when use_gpu is True, otherwise use cpu
-    use_cuda = torch.cuda.is_available() if use_gpu else False
+    use_cuda = torch.cuda.is_available() if not no_cuda else False
     device = torch.device("cuda:0" if use_cuda else "cpu")
     torch.backends.cudnn.benchmark = True
 
@@ -293,7 +293,7 @@ if __name__ == "__main__":
     parser.add_argument("--model", type=str, default='tand',
         choices=['tand','ep_epp'],
         help='modeling for tand or ep_epp')
-    parser.add_argument("--use_gpu", type=bool, default=True,
+    parser.add_argument('--no_cuda', default=False, action='store_true',
         help='use gpu or cpu, default to gpu')
     args = parser.parse_args()
 
@@ -323,5 +323,5 @@ if __name__ == "__main__":
         scheduler=args.scheduler,
         loss_fn=args.loss_fn,
         model_for=args.model,
-        use_gpu=args.use_gpu,
+        no_cuda=args.no_cuda,
     )

@@ -5,7 +5,7 @@ from utils import VEDataset
 import numpy as np
 from torch.optim import Adam, SGD, AdamW, Adadelta, Adagrad
 from torch.optim.lr_scheduler import ExponentialLR
-from model import SimpleANN
+from model import SimpleANN, SplitANN
 from tqdm import tqdm
 import json
 import logging
@@ -31,10 +31,13 @@ def run_training(
     data_test_json_dir:str,
     seed: int,
     input_dim: int,
+    descriptor_dim: int,
+    input_split_dim: int,
     hidden_1: int,
     hidden_2: int,
     dropout: float,
     output_dim: int,
+    output_split_dim: int,
     save_to: str,
     EPOCHS: int,
     BATCH_SIZE: int,
@@ -44,6 +47,7 @@ def run_training(
     optimizer:str,
     scheduler:str,
     loss_fn:str,
+    model_for:str,
     ):
     # create the 'save_to' folder if not exist
     # don't check for existence of the folder because it should not be
@@ -61,12 +65,23 @@ def run_training(
     torch.backends.cudnn.benchmark = True
 
     # load model
-    model = SimpleANN(input_dim=input_dim,
-        hidden_1=hidden_1,
-        hidden_2=hidden_2,
-        output_dim=output_dim,
-        dropout=dropout
-        ).to(device)
+    if model_for == 'tand':
+        model = SimpleANN(
+            input_dim=input_dim,
+            hidden_1=hidden_1,
+            hidden_2=hidden_2,
+            output_dim=output_dim,
+            dropout=dropout
+            ).to(device)
+    elif model_for == 'ep_epp':
+        model = SplitANN(
+            descriptor_dim=descriptor_dim,
+            input_split_dim=input_split_dim,
+            hidden_1=hidden_1,
+            hidden_2=hidden_2,
+            output_split_dim=output_split_dim,
+            dropout=dropout
+            ).to(device)
     print(model)
 
 
@@ -234,6 +249,10 @@ if __name__ == "__main__":
         help='path to the json file containing the dataframe of test data')
     parser.add_argument("--input_dim", type=int, default=66,
         help='dimension of the input')
+    parser.add_argument("--descriptor_dim", type=int, default=6,
+        help='dimension of the descriptors in the input')
+    parser.add_argument("--input_split_dim", type=int, default=30,
+        help="dimension of the matrix E' and E'' in the input")
     parser.add_argument("--hidden_1", type=int, default=64,
         help='dimension of hidden layer 1')
     parser.add_argument("--hidden_2", type=int, default=64,
@@ -242,6 +261,8 @@ if __name__ == "__main__":
         help='dropout ratio')
     parser.add_argument("--output_dim", type=int, default=60,
         help='dimension of the output')
+    parser.add_argument("--output_split_dim", type=int, default=30,
+        help="dimension of the composite E' and E'' in the output")
     parser.add_argument("-s", "--seed", type=int, default=27,
         help='random seed for train/valid split')
     parser.add_argument("-b", "--batch_size", type=int, default=32,
@@ -267,6 +288,9 @@ if __name__ == "__main__":
         help='save model and history file under this name')
     parser.add_argument("--task_name", type=str, default='unknown',
         help='name of the task, eg. ep_epp, tand')
+    parser.add_argument("--model", type=str, default='tand',
+        choices=['tand','ep_epp'],
+        help='modeling for tand or ep_epp')
     args = parser.parse_args()
 
     # generate save_to if not provided
@@ -278,10 +302,13 @@ if __name__ == "__main__":
         data_test_json_dir=args.data_test_json_dir,
         seed=args.seed,
         input_dim=args.input_dim,
+        descriptor_dim=args.descriptor_dim,
+        input_split_dim=args.input_split_dim,
         hidden_1=args.hidden_1,
         hidden_2=args.hidden_2,
         dropout=args.dropout,
         output_dim=args.output_dim,
+        output_split_dim=args.output_split_dim,
         save_to=args.save_to,
         EPOCHS=args.epochs,
         BATCH_SIZE=args.batch_size,
@@ -291,4 +318,5 @@ if __name__ == "__main__":
         optimizer=args.optimizer,
         scheduler=args.scheduler,
         loss_fn=args.loss_fn,
+        model_for=args.model
     )

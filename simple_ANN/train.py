@@ -44,6 +44,7 @@ def run_training(
     NUM_WORKERS: int,
     VALID_FRACTION: float,
     LR: float,
+    weight_decay: float,
     optimizer:str,
     scheduler:str,
     loss_fn:str,
@@ -121,15 +122,15 @@ def run_training(
 
     # define the optimizer, use Adam by default
     if optimizer == 'sgd':
-        optimizer = SGD(model.parameters(), lr = LR)
+        optimizer = SGD(model.parameters(), lr=LR, weight_decay=weight_decay)
     elif optimizer == 'adamw':
-        optimizer = AdamW(model.parameters(), lr = LR)
+        optimizer = AdamW(model.parameters(), lr=LR, weight_decay=weight_decay)
     elif optimizer == 'adadelta':
-        optimizer = Adadelta(model.parameters(), lr = LR)
+        optimizer = Adadelta(model.parameters(), lr=LR, weight_decay=weight_decay)
     elif optimizer == 'adagrad':
-        optimizer = Adagrad(model.parameters(), lr = LR)
+        optimizer = Adagrad(model.parameters(), lr=LR, weight_decay=weight_decay)
     else:
-        optimizer = Adam(model.parameters(), lr = LR)
+        optimizer = Adam(model.parameters(), lr=LR, weight_decay=weight_decay)
 
     # define the scheduler, use no scheduler by default
     no_scheduler = False
@@ -268,15 +269,17 @@ if __name__ == "__main__":
     parser.add_argument("-s", "--seed", type=int, default=27,
         help='random seed for train/valid split')
     parser.add_argument("-b", "--batch_size", type=int, default=32,
-        help='the batch size for training')
+        help='the batch size for training, default to 32')
     parser.add_argument("-e", "--epochs", type=int, default=100,
-        help='number of training epochs')
+        help='number of training epochs, default to 100')
     parser.add_argument("--num_workers", type=int, default=0,
-        help='number of subprocesses to use for data loading')
+        help='number of subprocesses to use for data loading, default to 0')
     parser.add_argument("--valid_fraction", type=float, default=0.2,
-        help='fraction of training set to use as validation')
+        help='fraction of training set to use as validation, default to 0.2')
     parser.add_argument('-l', "--lr", type=float, default=0.001,
-        help='peak learning rate')
+        help='peak learning rate, default to 1e-3')
+    parser.add_argument("--wd", type=float, default=0.01,
+        help='weight decay of optimizer, default to 1e-2')
     parser.add_argument("--save_to", type=str, default=None,
         help='save model and history file under this name')
     parser.add_argument("--optimizer", type=str, default='adam',
@@ -319,6 +322,7 @@ if __name__ == "__main__":
         NUM_WORKERS=args.num_workers,
         VALID_FRACTION=args.valid_fraction,
         LR=args.lr,
+        weight_decay=args.wd,
         optimizer=args.optimizer,
         scheduler=args.scheduler,
         loss_fn=args.loss_fn,

@@ -46,11 +46,11 @@ class SplitANN(nn.Module):
         
     def forward(self,x):
         # x is of size batch_size*input_dim
-        x_ep = x[:,:self.descriptor_dim + self.input_split_dim] # x[:,:36]
-        x_epp = torch.cat((x[:,:self.descriptor_dim],x[:,self.descriptor_dim+self.input_split_dim:]),1) # torch.cat((x[:,:6],x[:,36:]),1)
+        x_ep = x[...,:self.descriptor_dim + self.input_split_dim] # x[:,:36]
+        x_epp = torch.cat((x[...,:self.descriptor_dim],x[...,self.descriptor_dim+self.input_split_dim:]),-1) # torch.cat((x[:,:6],x[:,36:]),1)
         logits_ep = self.ep_half(x_ep)
         logits_epp = self.epp_half(x_epp)
-        return torch.cat((logits_ep,logits_epp),1)
+        return torch.cat((logits_ep,logits_epp),-1)
 
 
 # class HalfMLP(nn.Module):

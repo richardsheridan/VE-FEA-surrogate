@@ -85,6 +85,7 @@ def run_training(
             output_split_dim=output_split_dim,
             dropout=dropout
             ).to(device)
+        input_dim = descriptor_dim + input_split_dim*2
     print(model)
 
 

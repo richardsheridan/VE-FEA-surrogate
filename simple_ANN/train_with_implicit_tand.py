@@ -34,7 +34,9 @@ def train(model, x, y, optimizer, criterion, output_split_dim):
     # forward pass: compute predicted outputs by passing inputs to the model
     output = model(x)
     # compute tan delta from E' and E", concatenate it to output
-    ep_epp_tand = torch.cat((output,output[...,output_split_dim:]/output[...,:output_split_dim]),-1)
+    # note that E' and E" are after log10
+    # tand = E"/E' = 10**log10(E"/E') = 10**(log10(E")-log10(E'))
+    ep_epp_tand = torch.cat((output,10**(output[...,output_split_dim:]-output[...,:output_split_dim])),-1)
     # calculate the loss
     loss = criterion(ep_epp_tand,y)
     # backward pass: compute gradient of the loss with respect to model parameters

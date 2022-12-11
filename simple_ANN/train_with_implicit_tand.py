@@ -100,7 +100,7 @@ def run_training(
     # load checkpoint if needed
     if load_checkpoint:
         checkpoint = torch.load(load_checkpoint)
-        model.load_state_dict(checkpoint['model_state_dict'])
+        model.load_state_dict(checkpoint)
         # do not load optimizer state for now
         # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 

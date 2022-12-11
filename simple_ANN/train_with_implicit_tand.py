@@ -67,6 +67,7 @@ def run_training(
     scheduler:str,
     loss_fn:str,
     no_cuda:bool,
+    load_checkpoint:str,
     ):
     # create the 'save_to' folder if not exist
     # don't check for existence of the folder because it should not be
@@ -96,6 +97,12 @@ def run_training(
     input_dim = descriptor_dim + input_split_dim*2
     print(model)
 
+    # load checkpoint if needed
+    if load_checkpoint:
+        checkpoint = torch.load(load_checkpoint)
+        model.load_state_dict(checkpoint['model_state_dict'])
+        # do not load optimizer state for now
+        # optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
 
     # Datasets and Generators
     train_data = VEDataset(data_train_json_dir, index_in = input_dim)
@@ -304,6 +311,8 @@ if __name__ == "__main__":
         help='name of the task, eg. ep_epp, tand')
     parser.add_argument('--no_cuda', default=False, action='store_true',
         help='use gpu or cpu, default to gpu')
+    parser.add_argument('--load_checkpoint', default=None,
+        help='path to the checkpoint to be loaded as the starting point')
     args = parser.parse_args()
 
     # generate save_to if not provided
@@ -331,4 +340,5 @@ if __name__ == "__main__":
         scheduler=args.scheduler,
         loss_fn=args.loss_fn,
         no_cuda=args.no_cuda,
+        load_checkpoint=args.load_checkpoint,
     )

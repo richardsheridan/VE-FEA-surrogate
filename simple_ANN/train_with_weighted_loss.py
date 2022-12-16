@@ -163,7 +163,8 @@ def run_training(
             x_train, y_train = batch['input'], batch['output']
             x_train = x_train.to(device)
             y_train = y_train.to(device)
-            loss, predictions = train(model,x_train,y_train,optimizer,criterion)
+            loss, predictions = train(model,x_train,y_train,optimizer,criterion,
+                output_split_dim, w_loss1, w_loss2)
             train_loss += loss.item() * x_train.size(0)
         if not no_scheduler:
             scheduler.step()

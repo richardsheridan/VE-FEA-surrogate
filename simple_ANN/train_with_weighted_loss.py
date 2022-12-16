@@ -307,8 +307,6 @@ if __name__ == "__main__":
         help="weight assigned to loss term 1 (E')")
     parser.add_argument('--w_loss2', type=float, default=1,
         help="weight assigned to loss term 2 (tand)")
-    parser.add_argument('--no_cuda', default=False, action='store_true',
-        help='use gpu or cpu, default to gpu')
 
     args = parser.parse_args()
 

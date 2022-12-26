@@ -51,10 +51,6 @@ def run_training(
     model_for:str,
     no_cuda:bool,
     ):
-    # create the 'save_to' folder if not exist
-    # don't check for existence of the folder because it should not be
-    os.mkdir(save_to)
-
     # configure logging
     logging.basicConfig(level=logging.INFO, 
         filename=f'{save_to}/training_log.log',
@@ -304,6 +300,14 @@ if __name__ == "__main__":
     # generate save_to if not provided
     if not args.save_to:
         args.save_to = f'{args.task_name}_hs1-{args.hidden_1}_hs2-{args.hidden_2}_do-{args.dropout}_ep-{args.epochs}_bs-{args.batch_size}_lr-{args.lr}_opt-{args.optimizer}_sch-{args.scheduler}_loss-{args.loss_fn}'
+
+    # create the 'save_to' folder if not exist
+    # don't check for existence of the folder because it should not be
+    os.mkdir(args.save_to)
+    
+    # save parser config
+    with open(f'{args.save_to}/config.txt', 'w') as f:
+        json.dump(args.__dict__, f, indent=2)
     
     run_training(
         data_train_json_dir=args.data_train_json_dir,

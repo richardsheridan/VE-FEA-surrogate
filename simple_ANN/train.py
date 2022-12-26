@@ -47,6 +47,7 @@ def run_training(
     weight_decay: float,
     optimizer:str,
     scheduler:str,
+    gamma: float,
     loss_fn:str,
     model_for:str,
     no_cuda:bool,
@@ -132,7 +133,7 @@ def run_training(
     # define the scheduler, use no scheduler by default
     no_scheduler = False
     if scheduler == 'exp':
-        scheduler = ExponentialLR(optimizer, gamma=0.9)
+        scheduler = ExponentialLR(optimizer, gamma=gamma)
     else:
         no_scheduler = True
 
@@ -285,6 +286,8 @@ if __name__ == "__main__":
     parser.add_argument("--scheduler", type=str, default='no',
         choices=['no','exp'],
         help='scheduler to be used for training')
+    parser.add_argument("--gamma", type=float, default=0.9,
+        help='decay parameter gamma to be used with scheduler, default to 0.9')
     parser.add_argument("--loss_fn", type=str, default='mse',
         choices=['mse','l1','crossentropy'],
         help='save model and history file under this name')
@@ -327,6 +330,7 @@ if __name__ == "__main__":
         NUM_WORKERS=args.num_workers,
         VALID_FRACTION=args.valid_fraction,
         LR=args.lr,
+        gamma=args.gamma,
         weight_decay=args.wd,
         optimizer=args.optimizer,
         scheduler=args.scheduler,

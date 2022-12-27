@@ -24,3 +24,9 @@ class VEDataset(Dataset):
 
     def __len__(self):
         return self.len
+
+# mean absolute percentage error used by Yixing
+# MAPE = 1/N * sum_N{|(y_pred-y_true)/y_true|*100%}
+def MAPELoss(output, target):
+    loss = torch.mean(torch.abs((output - target)/target)*100)
+    return loss

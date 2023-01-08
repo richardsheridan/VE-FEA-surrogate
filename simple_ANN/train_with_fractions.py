@@ -105,7 +105,7 @@ def run_training(
     # extra split for training data
     np.random.shuffle(train_index)
     # note that the base of input train_fraction is the same as valid_fraction (size of train_data)
-    train_index = train_index[:np.floor(train_fraction * num_train)]
+    train_index = train_index[:int(np.floor(train_fraction * num_train))]
     # save size of each dataset to logging
     logging.info(f'Train:Valid:Test = {len(train_index)}:{len(valid_index)}:{len(test_data)}')
     # define samplers for obtaining training and validation batches
@@ -325,7 +325,7 @@ if __name__ == "__main__":
         json.dump(args.__dict__, f, indent=2)
     
     # loop through the training fractions
-    for train_fraction in args.train_fractions:
+    for train_fraction in tqdm(args.train_fractions):
         os.mkdir(args.save_to + f'/train_fraction-{train_fraction}')
         run_training(
             data_train_json_dir=args.data_train_json_dir,

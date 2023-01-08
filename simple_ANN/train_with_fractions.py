@@ -64,7 +64,10 @@ def run_training(
     use_cuda = torch.cuda.is_available() if not no_cuda else False
     device = torch.device("cuda:0" if use_cuda else "cpu")
     torch.backends.cudnn.benchmark = True
-
+    
+    # set random seed for pytorch
+    torch.manual_seed(seed)
+    
     # load model
     if model_for == 'tand':
         model = SimpleANN(
@@ -272,7 +275,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_split_dim", type=int, default=30,
         help="dimension of the composite E' and E'' in the output")
     parser.add_argument("-s", "--seed", type=int, default=27,
-        help='random seed for train/valid split')
+        help='random seed for train/valid split and torch reproducibility')
     parser.add_argument("-b", "--batch_size", type=int, default=32,
         help='the batch size for training, default to 32')
     parser.add_argument("-e", "--epochs", type=int, default=100,

@@ -191,7 +191,7 @@ def run_training(
             x_val = x_val.to(device)
             y_val = y_val.to(device)
             # forward pass: compute predicted outputs by passing inputs to the model
-            output = model(x_val)
+            output = model(im_val,x_val)
             # calculate the loss
             loss = criterion(output,y_val)
             # update running validation loss 
@@ -241,7 +241,7 @@ def run_training(
         x_test = x_test.to(device)
         y_test = y_test.to(device)
         # forward pass: compute predicted outputs by passing inputs to the model
-        output = model(x_test)
+        output = model(im_test,x_test)
         # calculate the loss
         loss = criterion(output,y_test)
         # update running validation loss 

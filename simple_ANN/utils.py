@@ -53,9 +53,23 @@ class VECNNDataset(Dataset):
         
     def __getitem__(self, index):
         item = {}
-        item['image'] = torch.as_tensor(np.load(self.df.iloc[index][self.image_col])[np.newaxis,...],dtype=torch.float)
-        item['input'] = torch.as_tensor(self.df.iloc[index][self.input_idx[0]:self.input_idx[1]].values,dtype=torch.float)
-        item['output'] = torch.as_tensor(self.df.iloc[index][self.output_idx[0]:self.output_idx[1]].values,dtype=torch.float)
+        item['image'] = torch.as_tensor(
+            np.load(
+                self.df.iloc[index][self.image_col]
+                )[np.newaxis,...],
+            dtype=torch.float)
+        # df is now of mixed type, must cast back to float before convert to tensor
+        item['input'] = torch.as_tensor(
+            self.df.iloc[index][self.input_idx[0]:self.input_idx[1]]
+            .astype('float')
+            .to_numpy(),
+            dtype=torch.float
+            )
+        item['output'] = torch.as_tensor(
+            self.df.iloc[index][self.output_idx[0]:self.output_idx[1]]
+            .astype('float')
+            .to_numpy(),
+            dtype=torch.float)
         return item
 
     def __len__(self):

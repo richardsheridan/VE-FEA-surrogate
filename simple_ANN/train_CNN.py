@@ -82,7 +82,7 @@ def run_training(
         hidden_1=hidden_1,
         hidden_2=hidden_2,
         output_split_dim=output_split_dim,
-        dropout=dropout.2,
+        dropout=dropout,
         conv_kernel_size=conv_kernel_size,
         stride=stride,
         padding=padding,

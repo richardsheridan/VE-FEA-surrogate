@@ -272,9 +272,9 @@ if __name__ == "__main__":
         help='path to the json file containing the dataframe of test data')
     parser.add_argument("--image_col", type=str, default='intph_img',
         help='the column name of the column that contains microstructure image file name in dataframe')
-    parser.add_argument("--input_idx", type=int, default=[1,37],
+    parser.add_argument("--input_idx", type=int, nargs='+', default=[1,37],
         help='index range of input features in the dataframe')
-    parser.add_argument("--output_idx", type=int, default=[37,67],
+    parser.add_argument("--output_idx", type=int, nargs='+', default=[37,67],
         help='index range of input features in the dataframe')
     parser.add_argument("--descriptor_dim", type=int, default=6,
         help='dimension of the descriptors in the input')

@@ -113,7 +113,7 @@ class SimpleANN_CNN(nn.Module):
         input_split_dim=30,
         hidden_1=64,
         hidden_2=64,
-        output_dim=30,
+        output_split_dim=30,
         dropout=0.2,
         conv_kernel_size=3,
         stride=1,

@@ -75,7 +75,7 @@ class CNN(nn.Module):
         # H_out = (H_in-dilation*(kernel_size-1)+2*padding-1)/stride+1
         # dilation default to 1
         # (500-3+2*1)/1+1=500
-        H_out = (image_dim-(kernel_size-1)+2*padding-1)/stride+1
+        H_out = (image_dim-(conv_kernel_size-1)+2*padding-1)/stride+1
         self.bn1 = nn.BatchNorm2d(output_ch_1)
         self.pool = nn.MaxPool2d(pool_kernel_size, pool_kernel_size)
         # (batch_size,16,250,250)
@@ -84,14 +84,14 @@ class CNN(nn.Module):
             kernel_size=conv_kernel_size, stride=stride, padding=padding)
         # (batch_size,32,250,250)
         # (250-3+2*1)/1+1=250
-        H_out = (H_out-(kernel_size-1)+2*padding-1)/stride+1
+        H_out = (H_out-(conv_kernel_size-1)+2*padding-1)/stride+1
         self.bn2 = nn.BatchNorm2d(output_ch_2)
         # after pooling (batch_size,32,125,125)
         H_out = H_out//pool_kernel_size
         self.conv3 = nn.Conv2d(output_ch_2, output_ch_3,
             kernel_size=conv_kernel_size, stride=stride, padding=padding)
         # (batch_size,64,125,125)
-        H_out = (H_out-(kernel_size-1)+2*padding-1)/stride+1
+        H_out = (H_out-(conv_kernel_size-1)+2*padding-1)/stride+1
         self.bn3 = nn.BatchNorm2d(output_ch_3)
         # after pooling (batch_size,64,62,62)
         H_out = H_out//pool_kernel_size

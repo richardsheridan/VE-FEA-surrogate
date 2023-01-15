@@ -102,7 +102,7 @@ class CNN(nn.Module):
         x = self.pool(self.activation(self.bn1(self.conv1(x))))
         x = self.pool(self.activation(self.bn2(self.conv2(x))))
         x = self.pool(self.activation(self.bn3(self.conv3(x))))
-        x = torch.flatten(x, start_dimension=1) # flatten all dimensions except batch
+        x = torch.flatten(x, start_dim=1) # flatten all dimensions except batch
         x = self.activation(self.fc1(x))
         return x
 

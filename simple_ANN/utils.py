@@ -18,8 +18,80 @@ class VEDataset(Dataset):
         
     def __getitem__(self, index):
         item = {}
-        item['input'] = torch.as_tensor(self.df.iloc[index][:self.index_in].values,dtype=torch.float)
-        item['output'] = torch.as_tensor(self.df.iloc[index][self.index_in:].values,dtype=torch.float)
+        item['input'] = torch.as_tensor(self.df.iloc[index,:self.index_in].values,dtype=torch.float)
+        item['output'] = torch.as_tensor(self.df.iloc[index,self.index_in:].values,dtype=torch.float)
+        return item
+
+    def __len__(self):
+        return self.len
+
+class VEDatasetV2(Dataset):
+    '''
+    Upgraded dataset for VE response data with support for cross-feature scaling.
+    '''
+    def __init__(
+        self,
+        json_file,
+        descriptor_dim=6,
+        ve_dim=30,
+        num_ve=1,
+        scaling=False,
+        ):
+        '''
+        param json_file: path to the json dump of a pandas dataframe
+        type json_file: str
+        
+        param descriptor_dim: the # of columns that are the descriptor params,
+            default to the leading 6 columns
+        type descriptor_dim: int
+
+        param ve_dim: the # of columns that reports the ve response, can
+            be E', E", or tan delta, default to following the descriptor columns
+            with value of 30
+        type ve_dim: int
+
+        param num_ve: the # of ve response type, if we are creating a dataset
+            for tan delta, then it's 1, if we are creating a dataset for E' and
+            tan delta, then it's 2, default to 1
+        type num_ve: int
+
+        '''
+        self.df = pd.read_json(json_file)
+        self.len = len(self.df)
+        # the column index where model inputs end
+        self.index_in = descriptor_dim + num_ve*ve_dim
+        self.descriptor_dim = descriptor_dim
+        self.ve_dim = ve_dim
+        self.num_ve = num_ve
+        if scaling:
+            self.df = self.scaling_df(self.df)
+
+    def _scaling(self, df):
+        '''
+        Apply min-max scaling to ve cols and add scaling factors as a new col.
+        '''
+        df = df.copy()
+        # generate max and min for each ve
+        for i in range(self.num_ve):
+            ve_in_start = self.descriptor_dim + i*self.ve_dim
+            ve_in_end = ve_in_start + self.ve_dim
+            ve_out_start = self.index_in + i*self.ve_dim
+            ve_out_end = ve_out_start + self.ve_dim
+            ve_max = df[df.columns[ve_in_start:ve_in_end]].max(axis=1)
+            ve_min = df[df.columns[ve_in_start:ve_in_end]].min(axis=1)
+            # scale input
+            df[df.columns[ve_in_start:ve_in_end]] = df[df.columns[ve_in_start:ve_in_end]].apply(lambda x:(x-min_ve)/(max_ve-min_ve))
+            # scale output
+            df[df.columns[ve_out_start:ve_out_end]] = df[df.columns[ve_out_start:ve_out_end]].apply(lambda x:(x-min_ve)/(max_ve-min_ve))
+            # save scale to df
+            df[f'max_{i}'] = ve_max
+            df[f'min_{i}'] = ve_min
+        return df
+
+    def __getitem__(self, index):
+        item = {}
+        item['input'] = torch.as_tensor(self.df.iloc[index,:self.index_in].values,dtype=torch.float)
+        item['output'] = torch.as_tensor(self.df.iloc[index,self.index_in:self.index_in+self.num_ve*self.ve_dim].values,dtype=torch.float)
         return item
 
     def __len__(self):

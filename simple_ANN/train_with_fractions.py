@@ -27,8 +27,8 @@ def train(model, x, y, optimizer, criterion):
     return loss, output
 
 def run_training(
-    data_train_json_dir:str,
-    data_test_json_dir:str,
+    data_train_json_dirs:list,
+    data_test_json_dirs:list,
     seed: int,
     input_dim: int,
     descriptor_dim: int,
@@ -52,6 +52,7 @@ def run_training(
     model_for:str,
     no_cuda:bool,
     train_fraction:float,
+    scaling:bool,
     ):
     # configure logging
     logging.basicConfig(level=logging.INFO, 
@@ -77,6 +78,7 @@ def run_training(
             output_dim=output_dim,
             dropout=dropout
             ).to(device)
+        num_ve = 1
     elif model_for == 'ep_epp':
         model = SplitANN(
             descriptor_dim=descriptor_dim,
@@ -87,13 +89,27 @@ def run_training(
             dropout=dropout
             ).to(device)
         input_dim = descriptor_dim + input_split_dim*2
+        num_ve = 2
     print(model)
 
 
     # Datasets and Generators
-    train_data = VEDataset(data_train_json_dir, index_in = input_dim)
-    test_data = VEDataset(data_test_json_dir, index_in = input_dim)
-
+    # train_data = VEDataset(data_train_json_dir, index_in = input_dim)
+    # test_data = VEDataset(data_test_json_dir, index_in = input_dim)
+    train_data = VEDatasetV2(
+        json_files=data_train_json_dirs,
+        descriptor_dim=descriptor_dim,
+        ve_dim=input_split_dim,
+        num_ve=num_ve,
+        scaling=scaling
+    )
+    test_data = VEDatasetV2(
+        json_files=data_test_json_dirs,
+        descriptor_dim=descriptor_dim,
+        ve_dim=input_split_dim,
+        num_ve=num_ve,
+        scaling=scaling
+    )
     # obtain training indices that will be used for validation
     num_train = len(train_data)
     indices = list(range(num_train))
@@ -252,12 +268,18 @@ if __name__ == "__main__":
     import argparse
 
     parser = argparse.ArgumentParser()
-    parser.add_argument("--data_train_json_dir", type=str,
-        default='../full_train.json',
-        help='path to the json file containing the dataframe of training data')
-    parser.add_argument("--data_test_json_dir", type=str,
-        default='../full_test.json',
-        help='path to the json file containing the dataframe of test data')
+    # parser.add_argument("--data_train_json_dir", type=str,
+    #     default='../full_train.json',
+    #     help='path to the json file containing the dataframe of training data')
+    # parser.add_argument("--data_test_json_dir", type=str,
+    #     default='../full_test.json',
+    #     help='path to the json file containing the dataframe of test data')
+    parser.add_argument("--data_train_json_dirs", type=str, nargs='+',
+        default=['../PC_ep_tand_train.json','../PMMA_ep_tand_train.json'],
+        help='a list of path to the json files containing the dataframe of training data')
+    parser.add_argument("--data_test_json_dirs", type=str, nargs='+',
+        default=['../PC_ep_tand_test.json','../PMMA_ep_tand_test.json'],
+        help='a list of path to the json files containing the dataframe of test data')
     parser.add_argument("--input_dim", type=int, default=66,
         help='dimension of the input')
     parser.add_argument("--descriptor_dim", type=int, default=6,
@@ -310,6 +332,9 @@ if __name__ == "__main__":
         help='use gpu or cpu, default to gpu')
     parser.add_argument("--train_fractions", type=float, default=[0.8], nargs='*',
         help='a list of fractions of training set for training, default to [0.8]')
+    parser.add_argument("--scaling", default=False, action='store_true',
+        help='scale input ve data or not, default to false')
+
     args = parser.parse_args()
 
     # generate save_to if not provided
@@ -328,8 +353,8 @@ if __name__ == "__main__":
     for train_fraction in tqdm(args.train_fractions):
         os.mkdir(args.save_to + f'/train_fraction-{train_fraction}')
         run_training(
-            data_train_json_dir=args.data_train_json_dir,
-            data_test_json_dir=args.data_test_json_dir,
+            data_train_json_dirs=args.data_train_json_dirs,
+            data_test_json_dirs=args.data_test_json_dirs,
             seed=args.seed,
             input_dim=args.input_dim,
             descriptor_dim=args.descriptor_dim,
@@ -353,4 +378,5 @@ if __name__ == "__main__":
             model_for=args.model,
             no_cuda=args.no_cuda,
             train_fraction=train_fraction,
+            scaling=args.scaling,
         )

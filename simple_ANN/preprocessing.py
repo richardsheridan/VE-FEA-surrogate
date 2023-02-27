@@ -185,7 +185,7 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'epp_25', 'epp_26', 'epp_27', 'epp_28', 'epp_29'
                ]
     elif mode == 'tand':
-        cols = ['intph_img','ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
                 'mc_tand_0', 'mc_tand_1', 'mc_tand_2', 'mc_tand_3', 'mc_tand_4', 'mc_tand_5', 
                 'mc_tand_6', 'mc_tand_7', 'mc_tand_8', 'mc_tand_9', 'mc_tand_10', 'mc_tand_11',
                 'mc_tand_12', 'mc_tand_13', 'mc_tand_14', 'mc_tand_15', 'mc_tand_16', 'mc_tand_17',

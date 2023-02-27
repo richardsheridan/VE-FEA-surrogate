@@ -77,7 +77,7 @@ def interpolate(x, ref_x, ref_y, log_x = True, log_y = False, return_log = False
         y = 10**y
     return y
 
-def preprocess_master_curve(master_curve):
+def preprocess_master_curve(master_curve, ref_freq):
     mc = np.loadtxt('../'+master_curve)
     return [interpolate(x,mc[:,0],mc[:,2]/mc[:,1],log_x=True,log_y=False) for x in ref_freq]
 
@@ -101,7 +101,7 @@ def get_ep_epp(tsv, return_log=True):
 # In[19]:
 
 
-def preprocess_master_curve_for_ep_epp(master_curve):
+def preprocess_master_curve_for_ep_epp(master_curve, ref_freq):
     mc = np.loadtxt('../'+master_curve)
     return [interpolate(x,mc[:,0],mc[:,1]*1e6,log_x=True,log_y=True,return_log=True) for x in ref_freq] + [interpolate(x,mc[:,0],mc[:,2]*1e6,log_x=True,log_y=True,return_log=True) for x in ref_freq]
 
@@ -128,11 +128,11 @@ def raw_json_to_train_test(json_dir, matrix, mode):
     # Unpack the layers column. Originally it's a list.
     df['layer_0'] = df.layers.apply(lambda x:x[0])
     # get all 30 tan delta values of pure polymer
-    df['mc_tand_0'],df['mc_tand_1'],df['mc_tand_2'],df['mc_tand_3'],df['mc_tand_4'],df['mc_tand_5'],    df['mc_tand_6'],df['mc_tand_7'],df['mc_tand_8'],df['mc_tand_9'],df['mc_tand_10'],df['mc_tand_11'],    df['mc_tand_12'],df['mc_tand_13'],df['mc_tand_14'],df['mc_tand_15'],df['mc_tand_16'],df['mc_tand_17'],    df['mc_tand_18'],df['mc_tand_19'],df['mc_tand_20'],df['mc_tand_21'],df['mc_tand_22'],df['mc_tand_23'],    df['mc_tand_24'],df['mc_tand_25'],df['mc_tand_26'],df['mc_tand_27'],df['mc_tand_28'],df['mc_tand_29'],    = zip(*df.master_curve.apply(preprocess_master_curve))
+    df['mc_tand_0'],df['mc_tand_1'],df['mc_tand_2'],df['mc_tand_3'],df['mc_tand_4'],df['mc_tand_5'],    df['mc_tand_6'],df['mc_tand_7'],df['mc_tand_8'],df['mc_tand_9'],df['mc_tand_10'],df['mc_tand_11'],    df['mc_tand_12'],df['mc_tand_13'],df['mc_tand_14'],df['mc_tand_15'],df['mc_tand_16'],df['mc_tand_17'],    df['mc_tand_18'],df['mc_tand_19'],df['mc_tand_20'],df['mc_tand_21'],df['mc_tand_22'],df['mc_tand_23'],    df['mc_tand_24'],df['mc_tand_25'],df['mc_tand_26'],df['mc_tand_27'],df['mc_tand_28'],df['mc_tand_29'],    = zip(*df.master_curve.apply(lambda x:preprocess_master_curve(x,ref_freq)))
     # get all 30 E' values and 30 E'' values of PNC
     df['ep_0'],df['ep_1'],df['ep_2'],df['ep_3'],df['ep_4'],df['ep_5'],    df['ep_6'],df['ep_7'],df['ep_8'],df['ep_9'],df['ep_10'],df['ep_11'],    df['ep_12'],df['ep_13'],df['ep_14'],df['ep_15'],df['ep_16'],df['ep_17'],    df['ep_18'],df['ep_19'],df['ep_20'],df['ep_21'],df['ep_22'],df['ep_23'],    df['ep_24'],df['ep_25'],df['ep_26'],df['ep_27'],df['ep_28'],df['ep_29'],    df['epp_0'],df['epp_1'],df['epp_2'],df['epp_3'],df['epp_4'],df['epp_5'],    df['epp_6'],df['epp_7'],df['epp_8'],df['epp_9'],df['epp_10'],df['epp_11'],    df['epp_12'],df['epp_13'],df['epp_14'],df['epp_15'],df['epp_16'],df['epp_17'],    df['epp_18'],df['epp_19'],df['epp_20'],df['epp_21'],df['epp_22'],df['epp_23'],    df['epp_24'],df['epp_25'],df['epp_26'],df['epp_27'],df['epp_28'],df['epp_29'],    = zip(*df.VE_response.apply(get_ep_epp))
     # get all 30 E' values and 30 E'' values of pure polymer
-    df['mc_ep_0'],df['mc_ep_1'],df['mc_ep_2'],df['mc_ep_3'],df['mc_ep_4'],df['mc_ep_5'],    df['mc_ep_6'],df['mc_ep_7'],df['mc_ep_8'],df['mc_ep_9'],df['mc_ep_10'],df['mc_ep_11'],    df['mc_ep_12'],df['mc_ep_13'],df['mc_ep_14'],df['mc_ep_15'],df['mc_ep_16'],df['mc_ep_17'],    df['mc_ep_18'],df['mc_ep_19'],df['mc_ep_20'],df['mc_ep_21'],df['mc_ep_22'],df['mc_ep_23'],    df['mc_ep_24'],df['mc_ep_25'],df['mc_ep_26'],df['mc_ep_27'],df['mc_ep_28'],df['mc_ep_29'],    df['mc_epp_0'],df['mc_epp_1'],df['mc_epp_2'],df['mc_epp_3'],df['mc_epp_4'],df['mc_epp_5'],    df['mc_epp_6'],df['mc_epp_7'],df['mc_epp_8'],df['mc_epp_9'],df['mc_epp_10'],df['mc_epp_11'],    df['mc_epp_12'],df['mc_epp_13'],df['mc_epp_14'],df['mc_epp_15'],df['mc_epp_16'],df['mc_epp_17'],    df['mc_epp_18'],df['mc_epp_19'],df['mc_epp_20'],df['mc_epp_21'],df['mc_epp_22'],df['mc_epp_23'],    df['mc_epp_24'],df['mc_epp_25'],df['mc_epp_26'],df['mc_epp_27'],df['mc_epp_28'],df['mc_epp_29'],    = zip(*df.master_curve.apply(preprocess_master_curve_for_ep_epp))
+    df['mc_ep_0'],df['mc_ep_1'],df['mc_ep_2'],df['mc_ep_3'],df['mc_ep_4'],df['mc_ep_5'],    df['mc_ep_6'],df['mc_ep_7'],df['mc_ep_8'],df['mc_ep_9'],df['mc_ep_10'],df['mc_ep_11'],    df['mc_ep_12'],df['mc_ep_13'],df['mc_ep_14'],df['mc_ep_15'],df['mc_ep_16'],df['mc_ep_17'],    df['mc_ep_18'],df['mc_ep_19'],df['mc_ep_20'],df['mc_ep_21'],df['mc_ep_22'],df['mc_ep_23'],    df['mc_ep_24'],df['mc_ep_25'],df['mc_ep_26'],df['mc_ep_27'],df['mc_ep_28'],df['mc_ep_29'],    df['mc_epp_0'],df['mc_epp_1'],df['mc_epp_2'],df['mc_epp_3'],df['mc_epp_4'],df['mc_epp_5'],    df['mc_epp_6'],df['mc_epp_7'],df['mc_epp_8'],df['mc_epp_9'],df['mc_epp_10'],df['mc_epp_11'],    df['mc_epp_12'],df['mc_epp_13'],df['mc_epp_14'],df['mc_epp_15'],df['mc_epp_16'],df['mc_epp_17'],    df['mc_epp_18'],df['mc_epp_19'],df['mc_epp_20'],df['mc_epp_21'],df['mc_epp_22'],df['mc_epp_23'],    df['mc_epp_24'],df['mc_epp_25'],df['mc_epp_26'],df['mc_epp_27'],df['mc_epp_28'],df['mc_epp_29'],    = zip(*df.master_curve.apply(lambda x:preprocess_master_curve_for_ep_epp(x,ref_freq)))
     # replace intph_img column with absolute path
     df['intph_img'] = df['intph_img'].apply(lambda x:os.path.abspath('.'+x))
     # train/test split

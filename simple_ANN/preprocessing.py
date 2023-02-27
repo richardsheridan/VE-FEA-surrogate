@@ -197,6 +197,19 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'tan_d_19', 'tan_d_20', 'tan_d_21', 'tan_d_22', 'tan_d_23', 'tan_d_24',
                 'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29'
                ]
+    elif mode == 'ep':
+        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+                'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
+                'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
+                'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
+                'mc_ep_18', 'mc_ep_19', 'mc_ep_20', 'mc_ep_21', 'mc_ep_22', 'mc_ep_23',
+                'mc_ep_24', 'mc_ep_25', 'mc_ep_26', 'mc_ep_27', 'mc_ep_28', 'mc_ep_29',
+                'ep_0', 'ep_1', 'ep_2', 'ep_3', 'ep_4', 'ep_5', 'ep_6',
+                'ep_7', 'ep_8', 'ep_9', 'ep_10', 'ep_11', 'ep_12',
+                'ep_13', 'ep_14', 'ep_15', 'ep_16', 'ep_17', 'ep_18',
+                'ep_19', 'ep_20', 'ep_21', 'ep_22', 'ep_23', 'ep_24',
+                'ep_25', 'ep_26', 'ep_27', 'ep_28', 'ep_29',
+               ]
     else:
         cols = []
     # select cols

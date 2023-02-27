@@ -68,7 +68,7 @@ class VEDatasetV2(Dataset):
         if scaling:
             self.df = self.scaling_df(self.df)
 
-    def _scaling(self, df):
+    def scaling_df(self, df):
         '''
         Apply min-max scaling to ve cols and add scaling factors as a new col.
         '''

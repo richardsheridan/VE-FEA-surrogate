@@ -27,14 +27,14 @@ class SplitANN(nn.Module):
     def __init__(self, descriptor_dim=6, input_split_dim=30, hidden_1=128,
         hidden_2=128, output_split_dim=30, dropout=0.2):
         super().__init__()
-        self.ep_half = SimpleANN(
+        self.top_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
             hidden_1=hidden_1,
             hidden_2=hidden_2,
             output_dim=output_split_dim,
             dropout=dropout
         )
-        self.epp_half = SimpleANN(
+        self.btm_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
             hidden_1=hidden_1,
             hidden_2=hidden_2,
@@ -46,11 +46,17 @@ class SplitANN(nn.Module):
         
     def forward(self,x):
         # x is of size batch_size*input_dim
-        x_ep = x[...,:self.descriptor_dim + self.input_split_dim] # x[:,:36]
-        x_epp = torch.cat((x[...,:self.descriptor_dim],x[...,self.descriptor_dim+self.input_split_dim:]),-1) # torch.cat((x[:,:6],x[:,36:]),1)
-        logits_ep = self.ep_half(x_ep)
-        logits_epp = self.epp_half(x_epp)
-        return torch.cat((logits_ep,logits_epp),-1)
+        x_top = x[...,:self.descriptor_dim + self.input_split_dim] # x[:,:36]
+        x_btm = torch.cat(
+            (
+                x[...,:self.descriptor_dim],
+                x[...,self.descriptor_dim+self.input_split_dim:self.descriptor_dim+self.input_split_dim*2]
+            ),
+            -1
+        ) # torch.cat((x[:,:6],x[:,36:66]),1)
+        logits_top = self.top_half(x_top)
+        logits_btm = self.btm_half(x_btm)
+        return torch.cat((logits_top,logits_btm),-1)
 
 
 class CNN(nn.Module):

@@ -31,15 +31,15 @@ class VEDatasetV2(Dataset):
     '''
     def __init__(
         self,
-        json_file,
+        json_files,
         descriptor_dim=6,
         ve_dim=30,
         num_ve=1,
         scaling=False,
         ):
         '''
-        param json_file: path to the json dump of a pandas dataframe
-        type json_file: str
+        param json_files: a list of path to the json dump of a pandas dataframe
+        type json_files: List[str]
         
         param descriptor_dim: the # of columns that are the descriptor params,
             default to the leading 6 columns
@@ -56,7 +56,9 @@ class VEDatasetV2(Dataset):
         type num_ve: int
 
         '''
-        self.df = pd.read_json(json_file)
+        self.df = pd.DataFrame()
+        for file in json_files:
+            self.df = pd.concat([self.df, pd.read_json(file)],ignore_index=True)
         self.len = len(self.df)
         # the column index where model inputs end
         self.index_in = descriptor_dim + num_ve*ve_dim

@@ -82,9 +82,9 @@ class VEDatasetV2(Dataset):
             ve_max = df[df.columns[ve_in_start:ve_in_end]].max(axis=1)
             ve_min = df[df.columns[ve_in_start:ve_in_end]].min(axis=1)
             # scale input
-            df[df.columns[ve_in_start:ve_in_end]] = df[df.columns[ve_in_start:ve_in_end]].apply(lambda x:(x-min_ve)/(max_ve-min_ve))
+            df[df.columns[ve_in_start:ve_in_end]] = df[df.columns[ve_in_start:ve_in_end]].apply(lambda x:(x-ve_min)/(ve_max-ve_min))
             # scale output
-            df[df.columns[ve_out_start:ve_out_end]] = df[df.columns[ve_out_start:ve_out_end]].apply(lambda x:(x-min_ve)/(max_ve-min_ve))
+            df[df.columns[ve_out_start:ve_out_end]] = df[df.columns[ve_out_start:ve_out_end]].apply(lambda x:(x-ve_min)/(ve_max-ve_min))
             # save scale to df
             df[f'max_{i}'] = ve_max
             df[f'min_{i}'] = ve_min

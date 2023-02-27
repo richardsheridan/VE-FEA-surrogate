@@ -111,7 +111,12 @@ def preprocess_master_curve_for_ep_epp(master_curve):
 
 def raw_json_to_train_test(json_dir, matrix, mode):
     df = pd.read_json(json_dir,orient="index")
+    # assume freq intervals are unchanged throughout the json
+    ref_curve = np.loadtxt(f'../{df.index[0]}',delimiter='\t',skiprows=1)
+    ref_freq = ref_curve[:,0]
+    # add matrix info
     df['matrix'] = matrix
+    # move ve response file name out of the index col
     df['VE_response'] = df.index
     df = df.dropna()
     # get tan delta peak height & frequency

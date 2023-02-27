@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 from torch.utils.data import DataLoader,SubsetRandomSampler
-from utils import VEDataset
+from utils import VEDataset, VEDatasetV2
 import numpy as np
 from torch.optim import Adam, SGD, AdamW, Adadelta, Adagrad
 from torch.optim.lr_scheduler import ExponentialLR

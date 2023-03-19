@@ -4,17 +4,27 @@ import torch
 
 class SimpleANN(nn.Module):
     def __init__(self, input_dim=36, hidden_1=64, hidden_2=64, output_dim=30,
-        dropout=0.2):
+        dropout=0.2, activation='gelu'):
         super().__init__()
         # number of hidden nodes in each layer (64)
         # hidden_1 = 64
         # hidden_2 = 64
+        if activation == 'gelu':
+            self.activation = nn.GELU()
+        elif activation == 'relu':
+            self.activation = nn.ReLU()
+        elif activation == 'leakyrelu':
+            self.activation = nn.LeakyReLU()
+        elif activation == 'tanh':
+            self.activation = nn.Tanh()
+        else:
+            raise Exception("activation choices are limited to 'gelu','relu','leakyrelu','tanh'.")
         self.linear_relu_stack_with_dropout = nn.Sequential(
             nn.Linear(input_dim, hidden_1), # linear layer (36 -> hidden_1)
-            nn.ReLU(), # ReLU activation function
+            self.activation,
             nn.Dropout(dropout), # dropout layer (p=0.2), dropout prevents overfitting of data
             nn.Linear(hidden_1,hidden_2), # linear layer (n_hidden -> hidden_2)
-            nn.ReLU(), # ReLU activation function
+            self.activation,
             nn.Dropout(dropout), # dropout layer (p=0.2), dropout prevents overfitting of data
             nn.Linear(hidden_2,output_dim) # linear layer (n_hidden -> 10)
         )
@@ -25,21 +35,23 @@ class SimpleANN(nn.Module):
 
 class SplitANN(nn.Module):
     def __init__(self, descriptor_dim=6, input_split_dim=30, hidden_1=128,
-        hidden_2=128, output_split_dim=30, dropout=0.2):
+        hidden_2=128, output_split_dim=30, dropout=0.2, activation='gelu'):
         super().__init__()
         self.top_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
             hidden_1=hidden_1,
             hidden_2=hidden_2,
             output_dim=output_split_dim,
-            dropout=dropout
+            dropout=dropout,
+            activation=activation,
         )
         self.btm_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
             hidden_1=hidden_1,
             hidden_2=hidden_2,
             output_dim=output_split_dim,
-            dropout=dropout
+            dropout=dropout,
+            activation=activation,
         )
         self.descriptor_dim = descriptor_dim
         self.input_split_dim = input_split_dim

@@ -54,6 +54,7 @@ def run_training(
     no_cuda:bool,
     train_fraction:float,
     scaling:bool,
+    load_checkpoint:str,
     ):
     # configure logging
     logging.basicConfig(level=logging.INFO, 
@@ -95,6 +96,9 @@ def run_training(
         num_ve = 2
     print(model)
 
+    # load checkpoint if needed
+    if load_checkpoint:
+        model.load_state_dict(torch.load(load_checkpoint))
 
     # Datasets and Generators
     # train_data = VEDataset(data_train_json_dir, index_in = input_dim)
@@ -104,14 +108,14 @@ def run_training(
         descriptor_dim=descriptor_dim,
         ve_dim=input_split_dim,
         num_ve=num_ve,
-        scaling=scaling
+        scaling=scaling,
     )
     test_data = VEDatasetV2(
         json_files=data_test_json_dirs,
         descriptor_dim=descriptor_dim,
         ve_dim=input_split_dim,
         num_ve=num_ve,
-        scaling=scaling
+        scaling=scaling,
     )
     # obtain training indices that will be used for validation
     num_train = len(train_data)
@@ -339,6 +343,8 @@ if __name__ == "__main__":
         help='a list of fractions of training set for training, default to [0.8]')
     parser.add_argument("--scaling", default=False, action='store_true',
         help='scale input ve data or not, default to false')
+    parser.add_argument('--load_checkpoint', default=None,
+        help='path to the checkpoint/pretrained model to be loaded as the starting point')
 
     args = parser.parse_args()
 
@@ -385,4 +391,5 @@ if __name__ == "__main__":
             no_cuda=args.no_cuda,
             train_fraction=train_fraction,
             scaling=args.scaling,
+            load_checkpoint=args.load_checkpoint,
         )

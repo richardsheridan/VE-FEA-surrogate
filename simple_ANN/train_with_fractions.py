@@ -36,6 +36,7 @@ def run_training(
     hidden_1: int,
     hidden_2: int,
     dropout: float,
+    activation: str,
     output_dim: int,
     output_split_dim: int,
     save_to: str,
@@ -76,7 +77,8 @@ def run_training(
             hidden_1=hidden_1,
             hidden_2=hidden_2,
             output_dim=output_dim,
-            dropout=dropout
+            dropout=dropout,
+            activation=activation,
             ).to(device)
         num_ve = 1
     elif model_for == 'ep_epp':
@@ -86,7 +88,8 @@ def run_training(
             hidden_1=hidden_1,
             hidden_2=hidden_2,
             output_split_dim=output_split_dim,
-            dropout=dropout
+            dropout=dropout,
+            activation=activation,
             ).to(device)
         input_dim = descriptor_dim + input_split_dim*2
         num_ve = 2
@@ -292,6 +295,8 @@ if __name__ == "__main__":
         help='dimension of hidden layer 2')
     parser.add_argument("--dropout", type=float, default=0.2,
         help='dropout ratio')
+    parser.add_argument("--activation", type=str, default='gelu',
+        help="activation layer selection, limited to 'gelu','relu','leakyrelu','tanh'")
     parser.add_argument("--output_dim", type=int, default=60,
         help='dimension of the output')
     parser.add_argument("--output_split_dim", type=int, default=30,
@@ -362,6 +367,7 @@ if __name__ == "__main__":
             hidden_1=args.hidden_1,
             hidden_2=args.hidden_2,
             dropout=args.dropout,
+            activation=args.activation,
             output_dim=args.output_dim,
             output_split_dim=args.output_split_dim,
             save_to=args.save_to + f'/train_fraction-{train_fraction}',

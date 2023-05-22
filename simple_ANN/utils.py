@@ -67,6 +67,8 @@ class VEDatasetV2(Dataset):
         self.num_ve = num_ve
         if scaling:
             self.df = self.scaling_df(self.df)
+        # remove columns with null values
+        self.df = self.df.dropna(axis='columns')
 
     def scaling_df(self, df):
         '''

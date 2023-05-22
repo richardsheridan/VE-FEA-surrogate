@@ -36,6 +36,7 @@ class VEDatasetV2(Dataset):
         ve_dim=30,
         num_ve=1,
         scaling=False,
+        ignore_columns=['intph_img', 'percolation']
         ):
         '''
         param json_files: a list of path to the json dump of a pandas dataframe
@@ -60,6 +61,8 @@ class VEDatasetV2(Dataset):
         for file in json_files:
             self.df = pd.concat([self.df, pd.read_json(file)],ignore_index=True)
         self.len = len(self.df)
+        # drop columns specified in `ignore_columns`
+        self.df = self.df.drop(columns=ignore_columns)
         # the column index where model inputs end
         self.index_in = descriptor_dim + num_ve*ve_dim
         self.descriptor_dim = descriptor_dim
@@ -67,9 +70,7 @@ class VEDatasetV2(Dataset):
         self.num_ve = num_ve
         if scaling:
             self.df = self.scaling_df(self.df)
-        # remove columns with null values
-        self.df = self.df.dropna(axis='columns')
-
+        
     def scaling_df(self, df):
         '''
         Apply min-max scaling to ve cols and add scaling factors as a new col.

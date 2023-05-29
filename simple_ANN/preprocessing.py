@@ -10,20 +10,25 @@ import numpy as np
 from matplotlib import pyplot as plt
 import os
 from sklearn.model_selection import train_test_split
+from tqdm import tqdm
+import re
 
-
+tqdm.pandas(desc='Progress:')
 # In[7]:
 
 
 def get_tand(tsv):
-    data = np.loadtxt('../'+tsv,delimiter='\t',skiprows=1)
-    freq = data[:,0]
-    ep = data[:,1]
-    epp = data[:,2]
-    tand = epp/ep
-    tdpk_h = max(tand)
-    tdpk_f = freq[np.argmax(tand)]
-    return tdpk_h,tdpk_f,*tand
+    try:
+        data = np.loadtxt('../'+tsv,delimiter='\t',skiprows=1)
+        freq = data[:,0]
+        ep = data[:,1]
+        epp = data[:,2]
+        tand = epp/ep
+        tdpk_h = max(tand)
+        tdpk_f = freq[np.argmax(tand)]
+        return tdpk_h,tdpk_f,*tand
+    except:
+        return [None]*(2+30)
 
 
 # In[9]:
@@ -88,14 +93,18 @@ def preprocess_master_curve(master_curve, ref_freq):
 
 
 def get_ep_epp(tsv, return_log=True):
-    data = np.loadtxt('../'+tsv,delimiter='\t',skiprows=1)
-    freq = data[:,0]
-    ep = data[:,1]*1e6
-    epp = data[:,2]*1e6
-    if return_log:
-        ep = np.log10(ep)
-        epp = np.log10(epp)
-    return *ep,*epp
+    try:
+        data = np.loadtxt('../'+tsv,delimiter='\t',skiprows=1)
+        freq = data[:,0]
+        ep = data[:,1]*1e6
+        epp = data[:,2]*1e6
+        if return_log:
+            ep = np.log10(ep)
+            epp = np.log10(epp)
+        return *ep,*epp
+    except:
+        return [None]*(30+30)
+
 
 
 # In[19]:
@@ -109,7 +118,7 @@ def preprocess_master_curve_for_ep_epp(master_curve, ref_freq):
 # In[1]:
 
 
-def raw_json_to_train_test(json_dir, matrix, mode):
+def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
     df = pd.read_json(json_dir,orient="index")
     # assume freq intervals are unchanged throughout the json
     ref_curve = np.loadtxt(f'../{df.index[0]}',delimiter='\t',skiprows=1)
@@ -133,13 +142,31 @@ def raw_json_to_train_test(json_dir, matrix, mode):
     df['ep_0'],df['ep_1'],df['ep_2'],df['ep_3'],df['ep_4'],df['ep_5'],    df['ep_6'],df['ep_7'],df['ep_8'],df['ep_9'],df['ep_10'],df['ep_11'],    df['ep_12'],df['ep_13'],df['ep_14'],df['ep_15'],df['ep_16'],df['ep_17'],    df['ep_18'],df['ep_19'],df['ep_20'],df['ep_21'],df['ep_22'],df['ep_23'],    df['ep_24'],df['ep_25'],df['ep_26'],df['ep_27'],df['ep_28'],df['ep_29'],    df['epp_0'],df['epp_1'],df['epp_2'],df['epp_3'],df['epp_4'],df['epp_5'],    df['epp_6'],df['epp_7'],df['epp_8'],df['epp_9'],df['epp_10'],df['epp_11'],    df['epp_12'],df['epp_13'],df['epp_14'],df['epp_15'],df['epp_16'],df['epp_17'],    df['epp_18'],df['epp_19'],df['epp_20'],df['epp_21'],df['epp_22'],df['epp_23'],    df['epp_24'],df['epp_25'],df['epp_26'],df['epp_27'],df['epp_28'],df['epp_29'],    = zip(*df.VE_response.apply(get_ep_epp))
     # get all 30 E' values and 30 E'' values of pure polymer
     df['mc_ep_0'],df['mc_ep_1'],df['mc_ep_2'],df['mc_ep_3'],df['mc_ep_4'],df['mc_ep_5'],    df['mc_ep_6'],df['mc_ep_7'],df['mc_ep_8'],df['mc_ep_9'],df['mc_ep_10'],df['mc_ep_11'],    df['mc_ep_12'],df['mc_ep_13'],df['mc_ep_14'],df['mc_ep_15'],df['mc_ep_16'],df['mc_ep_17'],    df['mc_ep_18'],df['mc_ep_19'],df['mc_ep_20'],df['mc_ep_21'],df['mc_ep_22'],df['mc_ep_23'],    df['mc_ep_24'],df['mc_ep_25'],df['mc_ep_26'],df['mc_ep_27'],df['mc_ep_28'],df['mc_ep_29'],    df['mc_epp_0'],df['mc_epp_1'],df['mc_epp_2'],df['mc_epp_3'],df['mc_epp_4'],df['mc_epp_5'],    df['mc_epp_6'],df['mc_epp_7'],df['mc_epp_8'],df['mc_epp_9'],df['mc_epp_10'],df['mc_epp_11'],    df['mc_epp_12'],df['mc_epp_13'],df['mc_epp_14'],df['mc_epp_15'],df['mc_epp_16'],df['mc_epp_17'],    df['mc_epp_18'],df['mc_epp_19'],df['mc_epp_20'],df['mc_epp_21'],df['mc_epp_22'],df['mc_epp_23'],    df['mc_epp_24'],df['mc_epp_25'],df['mc_epp_26'],df['mc_epp_27'],df['mc_epp_28'],df['mc_epp_29'],    = zip(*df.master_curve.apply(lambda x:preprocess_master_curve_for_ep_epp(x,ref_freq)))
+    df = df.copy().dropna()
     # replace intph_img column with absolute path
     df['intph_img'] = df['intph_img'].apply(lambda x:os.path.abspath('.'+x))
-    # train/test split
-    df_train, df_test = train_test_split(df, test_size=0.2, random_state=27)
-    # generate output by mode
-    if mode == 'ep_tand':
-        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    # get percolation flag
+    unique_ms = set()
+    intph_img_2_tup = {}
+    intph_tup_2_img = {}
+    for intph_img in df['intph_img'].unique():
+        intph_thickness = re.search(r'_intph_([\d]+)_',intph_img)
+        thickness = '0'
+        if intph_thickness:
+            thickness = intph_thickness.group(1)
+        unique_ms.add((thickness, os.path.split(intph_img)[1]))
+        intph_img_2_tup[intph_img] = (thickness, os.path.split(intph_img)[1])
+        intph_tup_2_img[(thickness, os.path.split(intph_img)[1])] = intph_img
+    percolation_data = {i:is_percolated(intph_tup_2_img[i]) for i in tqdm(unique_ms)}
+    df['percolation'] = df.intph_img.progress_apply(lambda x:percolation_data[intph_img_2_tup[x]])
+    # train/test split, only split when split is positive
+    if split > 0:
+        df_train, df_test = train_test_split(df, test_size=split, random_state=seed)
+    else:
+        df_train = df.copy()
+    # configure columns for different output mode
+    # add interphased microstructure and percolation flag to cols as well
+    ep_tand_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -159,10 +186,9 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'tan_d_7', 'tan_d_8', 'tan_d_9', 'tan_d_10', 'tan_d_11', 'tan_d_12',
                 'tan_d_13', 'tan_d_14', 'tan_d_15', 'tan_d_16', 'tan_d_17', 'tan_d_18',
                 'tan_d_19', 'tan_d_20', 'tan_d_21', 'tan_d_22', 'tan_d_23', 'tan_d_24',
-                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29'
+                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img', 'percolation'
                ]
-    elif mode == 'ep_epp':
-        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    ep_epp_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -182,10 +208,9 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'epp_7', 'epp_8', 'epp_9', 'epp_10', 'epp_11', 'epp_12',
                 'epp_13', 'epp_14', 'epp_15', 'epp_16', 'epp_17', 'epp_18',
                 'epp_19', 'epp_20', 'epp_21', 'epp_22', 'epp_23', 'epp_24',
-                'epp_25', 'epp_26', 'epp_27', 'epp_28', 'epp_29'
+                'epp_25', 'epp_26', 'epp_27', 'epp_28', 'epp_29', 'intph_img', 'percolation'
                ]
-    elif mode == 'tand':
-        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    tand_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
                 'mc_tand_0', 'mc_tand_1', 'mc_tand_2', 'mc_tand_3', 'mc_tand_4', 'mc_tand_5', 
                 'mc_tand_6', 'mc_tand_7', 'mc_tand_8', 'mc_tand_9', 'mc_tand_10', 'mc_tand_11',
                 'mc_tand_12', 'mc_tand_13', 'mc_tand_14', 'mc_tand_15', 'mc_tand_16', 'mc_tand_17',
@@ -195,10 +220,9 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'tan_d_7', 'tan_d_8', 'tan_d_9', 'tan_d_10', 'tan_d_11', 'tan_d_12',
                 'tan_d_13', 'tan_d_14', 'tan_d_15', 'tan_d_16', 'tan_d_17', 'tan_d_18',
                 'tan_d_19', 'tan_d_20', 'tan_d_21', 'tan_d_22', 'tan_d_23', 'tan_d_24',
-                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29'
+                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img', 'percolation'
                ]
-    elif mode == 'ep':
-        cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    ep_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -208,16 +232,93 @@ def raw_json_to_train_test(json_dir, matrix, mode):
                 'ep_7', 'ep_8', 'ep_9', 'ep_10', 'ep_11', 'ep_12',
                 'ep_13', 'ep_14', 'ep_15', 'ep_16', 'ep_17', 'ep_18',
                 'ep_19', 'ep_20', 'ep_21', 'ep_22', 'ep_23', 'ep_24',
-                'ep_25', 'ep_26', 'ep_27', 'ep_28', 'ep_29',
+                'ep_25', 'ep_26', 'ep_27', 'ep_28', 'ep_29', 'intph_img', 'percolation'
                ]
-    else:
-        cols = []
-    # select cols
+    # dump tand, ep, ep_tand if mode is "all"
+    if mode == 'all':
+        for dump_mode,cols in [('tand',tand_cols), ('ep',ep_cols), ('ep_tand',ep_tand_cols)]:
+            df_train_dump = df_train[cols].reset_index(drop=True)
+            if split > 0:
+                df_test_dump = df_test[cols].reset_index(drop=True)
+            else:
+                df_test_dump = None
+            # dump to json
+            df_train_dump.to_json(f'{matrix}_{dump_mode}_train.json')
+            print(f"Train dataframe dumped to {matrix}_{dump_mode}_train.json")
+            if split > 0:
+                df_test_dump.to_json(f'{matrix}_{dump_mode}_test.json')
+                print(f"Test dataframe dumped to {matrix}_{dump_mode}_test.json")
+        return df_train_dump, df_test_dump
+    # otherwise, get the columns to be dumped
+    if mode == 'ep_tand':
+        cols = ep_tand_cols
+    elif mode == 'tand':
+        cols = tand_cols
+    elif mode == 'ep':
+        cols = ep_cols
+    elif mode == 'ep_epp':
+        cols = ep_epp_cols
+    # select columns
     df_train_dump = df_train[cols].reset_index(drop=True)
-    df_test_dump = df_test[cols].reset_index(drop=True)
+    if split > 0:
+        df_test_dump = df_test[cols].reset_index(drop=True)
+    else:
+        df_test_dump = None
     # dump to json
     df_train_dump.to_json(f'{matrix}_{mode}_train.json')
-    df_test_dump.to_json(f'{matrix}_{mode}_test.json')
     print(f"Train dataframe dumped to {matrix}_{mode}_train.json")
-    print(f"Test dataframe dumped to {matrix}_{mode}_test.json")
+    if split > 0:
+        df_test_dump.to_json(f'{matrix}_{mode}_test.json')
+        print(f"Test dataframe dumped to {matrix}_{mode}_test.json")
     return df_train_dump, df_test_dump
+
+# a function to determine whether a numpy array M is percolated or not
+def is_percolated(intph_img):
+    # Load microstructure with interphase
+    M = np.load(intph_img)
+    # Skip no interphase cases, meaning max value < 2 (0: particle, 1 to x-1: interphase, x: matrix)
+    matrix_code = M.max()
+    if matrix_code < 2:
+        return False
+    # Only keep open cells
+    M = ((M > 0) & (M < matrix_code)).astype('uint8')
+    # Find all open cells in the top row of the array
+    open_cells = np.flatnonzero(M[0])
+    # Define a stack to store cells to be visited
+    stack = [(0, j) for j in open_cells]
+    # Define a set to store visited cells
+    visited = set()
+    # Define a loop to visit all reachable cells
+    while stack:
+        i, j = stack.pop()
+        visited.add((i, j))
+        # Check if the current cell is in the bottom row
+        if i == M.shape[0] - 1:
+            return True
+        # Add all neighboring open cells to the stack
+        for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            ni, nj = i + di, j + dj
+            if (ni >= 0 and ni < M.shape[0] and
+                nj >= 0 and nj < M.shape[1] and
+                M[ni, nj] == 1 and (ni, nj) not in visited):
+                stack.append((ni, nj))
+    # Left to right
+    stack = [(i, 0) for i in np.flatnonzero(M[:,0])]
+    # reset visited
+    visited = set()
+    # Define a loop to visit all reachable cells
+    while stack:
+        i, j = stack.pop()
+        visited.add((i, j))
+        # Check if the current cell is in the rightmost col
+        if j == M.shape[1] - 1:
+            return True
+        # Add all neighboring open cells to the stack
+        for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
+            ni, nj = i + di, j + dj
+            if (ni >= 0 and ni < M.shape[0] and
+                nj >= 0 and nj < M.shape[1] and
+                M[ni, nj] == 1 and (ni, nj) not in visited):
+                stack.append((ni, nj))
+    # If no percolating path was found, return False
+    return False

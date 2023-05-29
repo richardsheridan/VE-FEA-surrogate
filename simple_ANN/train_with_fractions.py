@@ -18,13 +18,33 @@ def train(model, x, y, optimizer, criterion):
     # forward pass: compute predicted outputs by passing inputs to the model
     output = model(x)
     # calculate the loss
-    loss =criterion(output,y)
+    loss = criterion(output,y)
     # backward pass: compute gradient of the loss with respect to model parameters
     loss.backward()
     # perform a single optimization step (parameter update)
     optimizer.step()
 
     return loss, output
+
+# define the loss function for "mse_2pt"
+def mse_two_point(output,y):
+    mse = nn.MSELoss()
+    # overall mse loss
+    loss = mse(output, y)
+    # left edge
+    loss += mse(output[:,0], y[:,0])
+    # right edge
+    loss += mse(output[:,-1], y[:,-1])
+    return loss
+
+# define the loss function for "mse_3pt"
+def mse_three_point(output,y):
+    mse = nn.MSELoss()
+    # get left/right edge with mse_two_point
+    loss = mse_two_point(output, y)
+    # max diff
+    loss += mse(output.max(dim=1).values, y.max(dim=1).values)
+    return loss
 
 def run_training(
     data_train_json_dirs:list,
@@ -148,9 +168,15 @@ def run_training(
         criterion = nn.L1Loss()
     elif loss_fn == 'crossentropy':
         criterion = nn.CrossEntropyLoss()
-    else:
+    elif loss_fn == 'mse':
         criterion = nn.MSELoss()
-
+    elif loss_fn == 'mse_3pt':
+        # mse loss + extra mse loss for left and right edge + mse loss for peak
+        criterion = mse_three_point
+    elif loss_fn == 'mse_2pt':
+        # mse loss + extra mse loss for left and right edge
+        criterion = mse_two_point
+        
     # define the optimizer, use Adam by default
     if optimizer == 'sgd':
         optimizer = SGD(model.parameters(), lr=LR, weight_decay=weight_decay)
@@ -330,7 +356,7 @@ if __name__ == "__main__":
     parser.add_argument("--gamma", type=float, default=0.9,
         help='decay parameter gamma to be used with scheduler, default to 0.9')
     parser.add_argument("--loss_fn", type=str, default='mse',
-        choices=['mse','l1','crossentropy'],
+        choices=['mse','l1','crossentropy','mse_3pt','mse_2pt'],
         help='save model and history file under this name')
     parser.add_argument("--task_name", type=str, default='unknown',
         help='name of the task, eg. ep_epp, tand')

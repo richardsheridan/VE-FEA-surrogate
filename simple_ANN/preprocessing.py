@@ -166,7 +166,7 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
         df_train = df.copy()
     # configure columns for different output mode
     # add interphased microstructure and percolation flag to cols as well
-    ep_tand_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    ep_tand_cols = ['ParRu', 'ParRv', 'intph_shift', 'intph_l_brd', 'percolation', 'VfActual', 'Vt', 
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -186,9 +186,9 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
                 'tan_d_7', 'tan_d_8', 'tan_d_9', 'tan_d_10', 'tan_d_11', 'tan_d_12',
                 'tan_d_13', 'tan_d_14', 'tan_d_15', 'tan_d_16', 'tan_d_17', 'tan_d_18',
                 'tan_d_19', 'tan_d_20', 'tan_d_21', 'tan_d_22', 'tan_d_23', 'tan_d_24',
-                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img', 'percolation'
+                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img',
                ]
-    ep_epp_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    ep_epp_cols = ['ParRu', 'ParRv', 'intph_shift', 'intph_l_brd', 'percolation', 'VfActual', 'Vt', 
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -208,9 +208,9 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
                 'epp_7', 'epp_8', 'epp_9', 'epp_10', 'epp_11', 'epp_12',
                 'epp_13', 'epp_14', 'epp_15', 'epp_16', 'epp_17', 'epp_18',
                 'epp_19', 'epp_20', 'epp_21', 'epp_22', 'epp_23', 'epp_24',
-                'epp_25', 'epp_26', 'epp_27', 'epp_28', 'epp_29', 'intph_img', 'percolation'
+                'epp_25', 'epp_26', 'epp_27', 'epp_28', 'epp_29', 'intph_img',
                ]
-    tand_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    tand_cols = ['ParRu', 'ParRv', 'intph_shift', 'intph_l_brd', 'percolation', 'VfActual', 'Vt', 
                 'mc_tand_0', 'mc_tand_1', 'mc_tand_2', 'mc_tand_3', 'mc_tand_4', 'mc_tand_5', 
                 'mc_tand_6', 'mc_tand_7', 'mc_tand_8', 'mc_tand_9', 'mc_tand_10', 'mc_tand_11',
                 'mc_tand_12', 'mc_tand_13', 'mc_tand_14', 'mc_tand_15', 'mc_tand_16', 'mc_tand_17',
@@ -220,9 +220,9 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
                 'tan_d_7', 'tan_d_8', 'tan_d_9', 'tan_d_10', 'tan_d_11', 'tan_d_12',
                 'tan_d_13', 'tan_d_14', 'tan_d_15', 'tan_d_16', 'tan_d_17', 'tan_d_18',
                 'tan_d_19', 'tan_d_20', 'tan_d_21', 'tan_d_22', 'tan_d_23', 'tan_d_24',
-                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img', 'percolation'
+                'tan_d_25', 'tan_d_26', 'tan_d_27', 'tan_d_28', 'tan_d_29', 'intph_img',
                ]
-    ep_cols = ['ParRu', 'ParRv', 'VfActual', 'Vt', 'intph_shift', 'intph_l_brd',
+    ep_cols = ['ParRu', 'ParRv', 'intph_shift', 'intph_l_brd', 'percolation', 'VfActual', 'Vt', 
                 'mc_ep_0', 'mc_ep_1', 'mc_ep_2', 'mc_ep_3', 'mc_ep_4', 'mc_ep_5', 
                 'mc_ep_6', 'mc_ep_7', 'mc_ep_8', 'mc_ep_9', 'mc_ep_10', 'mc_ep_11',
                 'mc_ep_12', 'mc_ep_13', 'mc_ep_14', 'mc_ep_15', 'mc_ep_16', 'mc_ep_17',
@@ -232,7 +232,7 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
                 'ep_7', 'ep_8', 'ep_9', 'ep_10', 'ep_11', 'ep_12',
                 'ep_13', 'ep_14', 'ep_15', 'ep_16', 'ep_17', 'ep_18',
                 'ep_19', 'ep_20', 'ep_21', 'ep_22', 'ep_23', 'ep_24',
-                'ep_25', 'ep_26', 'ep_27', 'ep_28', 'ep_29', 'intph_img', 'percolation'
+                'ep_25', 'ep_26', 'ep_27', 'ep_28', 'ep_29', 'intph_img',
                ]
     # dump tand, ep, ep_tand if mode is "all"
     if mode == 'all':
@@ -279,7 +279,7 @@ def is_percolated(intph_img):
     # Skip no interphase cases, meaning max value < 2 (0: particle, 1 to x-1: interphase, x: matrix)
     matrix_code = M.max()
     if matrix_code < 2:
-        return False
+        return 0
     # Only keep open cells
     M = ((M > 0) & (M < matrix_code)).astype('uint8')
     # Find all open cells in the top row of the array
@@ -294,7 +294,7 @@ def is_percolated(intph_img):
         visited.add((i, j))
         # Check if the current cell is in the bottom row
         if i == M.shape[0] - 1:
-            return True
+            return 1
         # Add all neighboring open cells to the stack
         for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             ni, nj = i + di, j + dj
@@ -312,7 +312,7 @@ def is_percolated(intph_img):
         visited.add((i, j))
         # Check if the current cell is in the rightmost col
         if j == M.shape[1] - 1:
-            return True
+            return 1
         # Add all neighboring open cells to the stack
         for di, dj in ((-1, 0), (1, 0), (0, -1), (0, 1)):
             ni, nj = i + di, j + dj
@@ -321,4 +321,4 @@ def is_percolated(intph_img):
                 M[ni, nj] == 1 and (ni, nj) not in visited):
                 stack.append((ni, nj))
     # If no percolating path was found, return False
-    return False
+    return 0

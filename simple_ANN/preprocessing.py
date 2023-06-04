@@ -150,7 +150,7 @@ def raw_json_to_train_test(json_dir, matrix, mode, split=0.2, seed=27):
     intph_img_2_tup = {}
     intph_tup_2_img = {}
     for intph_img in df['intph_img'].unique():
-        intph_thickness = re.search(r'_intph_([\d]+)_',intph_img)
+        intph_thickness = re.search(r'intph_([\d]+)_',intph_img)
         thickness = '0'
         if intph_thickness:
             thickness = intph_thickness.group(1)

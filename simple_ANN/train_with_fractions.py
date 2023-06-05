@@ -75,6 +75,7 @@ def run_training(
     train_fraction:float,
     scaling:bool,
     load_checkpoint:str,
+    ignore_columns:list,
     ):
     # configure logging
     logging.basicConfig(level=logging.INFO, 
@@ -129,6 +130,7 @@ def run_training(
         ve_dim=input_split_dim,
         num_ve=num_ve,
         scaling=scaling,
+        ignore_columns=ignore_columns,
     )
     test_data = VEDatasetV2(
         json_files=data_test_json_dirs,
@@ -136,6 +138,7 @@ def run_training(
         ve_dim=input_split_dim,
         num_ve=num_ve,
         scaling=scaling,
+        ignore_columns=ignore_columns,
     )
     # obtain training indices that will be used for validation
     num_train = len(train_data)
@@ -371,6 +374,8 @@ if __name__ == "__main__":
         help='scale input ve data or not, default to false')
     parser.add_argument('--load_checkpoint', default=None,
         help='path to the checkpoint/pretrained model to be loaded as the starting point')
+    parser.add_argument('--ignore_columns', type=str, nargs='+', default=['intph_img'],
+        help='columns to be ignored when loading json to dataset')
 
     args = parser.parse_args()
 
@@ -418,4 +423,5 @@ if __name__ == "__main__":
             train_fraction=train_fraction,
             scaling=args.scaling,
             load_checkpoint=args.load_checkpoint,
+            ignore_columns=args.ignore_columns,
         )

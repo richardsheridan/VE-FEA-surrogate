@@ -4,8 +4,10 @@ import torch
 
 class SimpleANN(nn.Module):
     def __init__(self, input_dim=36, hidden_1=64, hidden_2=64, output_dim=30,
-        dropout=0.2, activation='gelu'):
+        dropout=0.2, activation='gelu', wide_and_deep_index=None):
+        # wide_and_deep_index indicates which input features are for wide NN
         super().__init__()
+        self.wide_and_deep_index = wide_and_deep_index
         # number of hidden nodes in each layer (64)
         # hidden_1 = 64
         # hidden_2 = 64
@@ -26,16 +28,26 @@ class SimpleANN(nn.Module):
             nn.Linear(hidden_1,hidden_2), # linear layer (n_hidden -> hidden_2)
             self.activation,
             nn.Dropout(dropout), # dropout layer (p=0.2), dropout prevents overfitting of data
-            nn.Linear(hidden_2,output_dim) # linear layer (n_hidden -> 10)
         )
-        
+        if wide_and_deep_index:
+            self.last_hidden = nn.Linear(len(wide_and_deep_index)+hidden_2,
+                                         output_dim) # linear layer (n_hidden -> 10)
+        else:
+            self.last_hidden = nn.Linear(hidden_2,output_dim) # linear layer (n_hidden -> 10)
+
     def forward(self,x):
-        logits = self.linear_relu_stack_with_dropout(x)
+        deep = self.linear_relu_stack_with_dropout(x)
+        if self.wide_and_deep_index:
+            wide = x[...,self.wide_and_deep_index]
+            logits = self.last_hidden(torch.cat((wide,deep), -1))
+        else:
+            logits = self.last_hidden(deep)
         return logits
 
 class SplitANN(nn.Module):
     def __init__(self, descriptor_dim=6, input_split_dim=30, hidden_1=128,
-        hidden_2=128, output_split_dim=30, dropout=0.2, activation='gelu'):
+        hidden_2=128, output_split_dim=30, dropout=0.2, activation='gelu',
+        wide_and_deep_index=None):
         super().__init__()
         self.top_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
@@ -44,6 +56,7 @@ class SplitANN(nn.Module):
             output_dim=output_split_dim,
             dropout=dropout,
             activation=activation,
+            wide_and_deep_index=wide_and_deep_index,
         )
         self.btm_half = SimpleANN(
             input_dim=descriptor_dim+input_split_dim,
@@ -52,6 +65,7 @@ class SplitANN(nn.Module):
             output_dim=output_split_dim,
             dropout=dropout,
             activation=activation,
+            wide_and_deep_index=wide_and_deep_index,
         )
         self.descriptor_dim = descriptor_dim
         self.input_split_dim = input_split_dim

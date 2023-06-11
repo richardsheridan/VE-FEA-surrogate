@@ -76,6 +76,7 @@ def run_training(
     scaling:bool,
     load_checkpoint:str,
     ignore_columns:list,
+    wide_and_deep_index:list,
     ):
     # configure logging
     logging.basicConfig(level=logging.INFO, 
@@ -376,6 +377,8 @@ if __name__ == "__main__":
         help='path to the checkpoint/pretrained model to be loaded as the starting point')
     parser.add_argument('--ignore_columns', type=str, nargs='+', default=['intph_img'],
         help='columns to be ignored when loading json to dataset')
+    parser.add_argument("--wide_and_deep_index", default=None, type=int, nargs="+",
+        help='index for features as wide signal for wide and deep NN, activated when given values, default to None')
 
     args = parser.parse_args()
 
@@ -424,4 +427,5 @@ if __name__ == "__main__":
             scaling=args.scaling,
             load_checkpoint=args.load_checkpoint,
             ignore_columns=args.ignore_columns,
+            wide_and_deep_index=args.wide_and_deep_index,
         )

@@ -102,6 +102,7 @@ def run_training(
             output_dim=output_dim,
             dropout=dropout,
             activation=activation,
+            wide_and_deep_index=wide_and_deep_index,
             ).to(device)
         num_ve = 1
     elif model_for == 'ep_epp':
@@ -113,6 +114,7 @@ def run_training(
             output_split_dim=output_split_dim,
             dropout=dropout,
             activation=activation,
+            wide_and_deep_index=wide_and_deep_index,
             ).to(device)
         input_dim = descriptor_dim + input_split_dim*2
         num_ve = 2

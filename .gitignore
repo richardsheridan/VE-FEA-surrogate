@@ -1,4 +1,3 @@
-*.pt
 *.log
 *history.json
 .ipynb_checkpoints/

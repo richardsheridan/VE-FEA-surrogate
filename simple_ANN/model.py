@@ -4,7 +4,7 @@ import torch
 
 class SimpleANN(nn.Module):
     def __init__(self, input_dim=36, hidden_1=64, hidden_2=64, output_dim=30,
-        dropout=0.2, activation='gelu', wide_and_deep_index=None):
+        dropout=0.2, activation='gelu', wide_and_deep_index=None, **kwargs):
         # wide_and_deep_index indicates which input features are for wide NN
         super().__init__()
         self.wide_and_deep_index = wide_and_deep_index

@@ -1,0 +1,16 @@
+activation: gelu
+dropout: 0.2
+hidden_1: 256
+hidden_2: 256
+input_dim: 37
+output_dim: 30
+descriptor_dim: 7
+ve_dim: 30
+num_ve: 1
+scaling: True
+ignore_columns: []
+wide_and_deep_index:
+  - 2
+  - 3
+  - 4
+  

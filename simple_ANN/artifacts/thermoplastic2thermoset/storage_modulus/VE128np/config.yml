@@ -1,0 +1,12 @@
+activation: gelu
+dropout: 0.2
+hidden_1: 128
+hidden_2: 128
+input_dim: 36
+output_dim: 30
+descriptor_dim: 6
+ve_dim: 30
+num_ve: 1
+scaling: True
+ignore_columns:
+- percolation

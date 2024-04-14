@@ -3,28 +3,6 @@ import torch
 import numpy as np
 import pandas as pd
 
-class VEDataset(Dataset):
-    def __init__(self, json_file, index_in = 36):
-        '''
-        param json_file: path to the json dump of a pandas dataframe
-        type json_file: str
-        
-        param index_in: the column index where the input parameters end, i.e. input dimension, default to 36
-        type index_in: int
-        '''
-        self.df = pd.read_json(json_file)
-        self.len = len(self.df)
-        self.index_in = index_in
-        
-    def __getitem__(self, index):
-        item = {}
-        item['input'] = torch.as_tensor(self.df.iloc[index,:self.index_in].values,dtype=torch.float)
-        item['output'] = torch.as_tensor(self.df.iloc[index,self.index_in:].values,dtype=torch.float)
-        return item
-
-    def __len__(self):
-        return self.len
-
 class VEDatasetV2(Dataset):
     '''
     Upgraded dataset for VE response data with support for cross-feature scaling.
@@ -36,7 +14,8 @@ class VEDatasetV2(Dataset):
         ve_dim=30,
         num_ve=1,
         scaling=False,
-        ignore_columns=['intph_img', 'percolation']
+        ignore_columns=['intph_img', 'percolation'],
+        **kwargs,
         ):
         '''
         param json_files: a list of path to the json dump of a pandas dataframe
@@ -68,6 +47,7 @@ class VEDatasetV2(Dataset):
         self.descriptor_dim = descriptor_dim
         self.ve_dim = ve_dim
         self.num_ve = num_ve
+        self.scaling_factor = {}
         if scaling:
             self.df = self.scaling_df(self.df)
         
@@ -91,6 +71,8 @@ class VEDatasetV2(Dataset):
             # save scale to df
             df[f'max_{i}'] = ve_max
             df[f'min_{i}'] = ve_min
+            # save scale to class
+            self.scaling_factor[i] = {'max':ve_max, 'min':ve_min}
         return df
 
     def __getitem__(self, index):
@@ -102,55 +84,13 @@ class VEDatasetV2(Dataset):
     def __len__(self):
         return self.len
 
-class VECNNDataset(Dataset):
-    def __init__(
-        self,
-        json_file,
-        image_col='intph_img',
-        input_idx=[1,37],
-        output_idx=[37,67]):
-        '''
-        param json_file: path to the json dump of a pandas dataframe
-        type json_file: str
-        
-        param image_col: the column name of the column that contains microstructure image file name in dataframe
-        type image_col: str
+    def scale_back(self, prediction, ve_id=0):
+        assert (ve_id >= 0 and ve_id < self.num_ve), "0 <= ve_id < num_ve is required"
+        min_matrix = self.scaling_factor[ve_id]['min'].values.reshape(-1,1).repeat(self.ve_dim,axis=1)
+        max_matrix = self.scaling_factor[ve_id]['max'].values.reshape(-1,1).repeat(self.ve_dim,axis=1)
+        # prediction must be an array or tensor
+        return prediction*(max_matrix-min_matrix)+min_matrix
 
-        param input_idx: the column index range where the input parameters start and end.
-        type index_idx: List(Int)
-
-        param output_idx: the column index range where the output parameters start and end.
-        tpye output_idx: List(Int)
-        '''
-        self.df = pd.read_json(json_file)
-        self.len = len(self.df)
-        self.image_col = image_col
-        self.input_idx = input_idx
-        self.output_idx = output_idx
-        
-    def __getitem__(self, index):
-        item = {}
-        item['image'] = torch.as_tensor(
-            np.load(
-                self.df.iloc[index][self.image_col]
-                )[np.newaxis,...],
-            dtype=torch.float)
-        # df is now of mixed type, must cast back to float before convert to tensor
-        item['input'] = torch.as_tensor(
-            self.df.iloc[index][self.input_idx[0]:self.input_idx[1]]
-            .astype('float')
-            .to_numpy(),
-            dtype=torch.float
-            )
-        item['output'] = torch.as_tensor(
-            self.df.iloc[index][self.output_idx[0]:self.output_idx[1]]
-            .astype('float')
-            .to_numpy(),
-            dtype=torch.float)
-        return item
-
-    def __len__(self):
-        return self.len
 
 # mean absolute percentage error used by Yixing
 # MAPE = 1/N * sum_N{|(y_pred-y_true)/y_true|*100%}

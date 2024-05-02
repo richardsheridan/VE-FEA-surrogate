@@ -1,0 +1,4 @@
+notebook>=7
+torch
+numpy
+pandas

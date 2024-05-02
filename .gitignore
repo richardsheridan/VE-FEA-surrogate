@@ -2,3 +2,7 @@
 *history.json
 .ipynb_checkpoints/
 __pycache__/
+# pixi environments
+.pixi
+*.egg-info
+

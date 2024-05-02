@@ -1,0 +1,17 @@
+[project]
+name = "VE-FEA-surrogate"
+version = "0.1.0"
+description = "Surrogate model to replace FEA for VE response on PNC."
+authors = ["richardsheridan <richard.sheridan@gmail.com>", "anqiclaire"]
+channels = ["conda-forge", "pytorch"]
+platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
+
+[tasks]
+notebook = "python -m notebook example.ipynb"
+
+[dependencies]
+notebook = ">=7"
+python = ">=3.12.0,<3.13.0"
+pytorch = {version = "*", channel="pytorch"}
+numpy = ">=1.26.4,<1.27"
+pandas = ">=2.2.2,<2.3"

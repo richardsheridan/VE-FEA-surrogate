@@ -7,11 +7,15 @@ channels = ["conda-forge", "pytorch"]
 platforms = ["win-64", "linux-64", "osx-64", "osx-arm64"]
 
 [tasks]
-notebook = "python -m notebook example.ipynb"
+notebook = "python -m notebook"
 
 [dependencies]
 notebook = ">=7"
 python = ">=3.12.0,<3.13.0"
-pytorch = {version = "*", channel="pytorch"}
+pytorch = {version = ">=2.2.0,<2.4.0", channel="pytorch"}
 numpy = ">=1.26.4,<1.27"
 pandas = ">=2.2.2,<2.3"
+scikit-learn = ">=1.4.2,<1.5"
+matplotlib = ">=3.8.4,<3.9"
+ipympl = ">=0.9.4,<0.10"
+scipy = ">=1.13.0,<1.14"
